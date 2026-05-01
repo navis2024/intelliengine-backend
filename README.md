@@ -10,10 +10,13 @@
 
 - **Java 17** - 主要编程语言
 - **Spring Boot 3.2** - 应用框架
+- **Spring Security + JWT** - 认证授权
 - **MyBatis Plus 3.5.5** - ORM框架
 - **MySQL 8.0** - 数据库
+- **Redis** - 缓存与会话
 - **COLA 4.0** - 分层架构
 - **Swagger/OpenAPI** - API文档
+- **Docker** - 容器化部署
 
 ## 项目结构
 
@@ -40,11 +43,38 @@ com.aigc.intelliengine
 | market | 14 | 模板市场、订单管理 |
 | common | 7 | 全局异常、统一响应 |
 
-**总计: 76个Java源文件**
+**总计: 82个Java源文件 + 3个单元测试类**
 
 ## 快速开始
 
-### 1. 环境要求
+### 方式一：Docker部署（推荐）
+
+```bash
+# 1. 克隆项目
+git clone https://github.com/navis2024/intelliengine-backend.git
+cd intelliengine-backend
+
+# 2. 一键部署
+./deploy.sh start
+
+# 3. 访问服务
+# API文档: http://localhost:8081/api/swagger-ui.html
+# MySQL: localhost:3307
+# Redis: localhost:6379
+```
+
+部署脚本命令：
+```bash
+./deploy.sh start    # 启动服务
+./deploy.sh stop     # 停止服务
+./deploy.sh restart  # 重启服务
+./deploy.sh logs     # 查看日志
+./deploy.sh status   # 查看状态
+```
+
+### 方式二：本地运行
+
+#### 1. 环境要求
 - JDK 17+
 - Maven 3.8+
 - MySQL 8.0
@@ -101,6 +131,22 @@ http://localhost:8081/api/swagger-ui.html
 - 所有代码需有详细中文注释
 - Mapper层使用MyBatis注解SQL
 - Controller层使用Swagger注解
+- JWT Token认证保护API
+
+## 单元测试
+
+```bash
+# 运行所有测试
+mvn test
+
+# 查看测试报告
+target/surefire-reports/
+```
+
+测试覆盖：
+- **JwtUtilTest** - JWT工具类测试（5个用例）
+- **UserAppServiceTest** - 用户服务测试（2个用例）
+- **ProjectAppServiceTest** - 项目服务测试（2个用例）
 
 ## GitHub仓库
 
@@ -108,4 +154,5 @@ https://github.com/navis2024/intelliengine-backend
 
 ## 版本历史
 
+- `v1.1.0` - 添加JWT认证、单元测试、Docker部署
 - `v1.0.0` - 初始版本，完成5个核心模块
