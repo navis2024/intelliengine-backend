@@ -20,6 +20,7 @@ public class MarketTemplateDO {
     private BigDecimal price;
     private BigDecimal originalPrice;
     private String currency;
+    private String thumbnailUrl;
     private Integer salesCount;
     private Integer viewCount;
     private BigDecimal rating;

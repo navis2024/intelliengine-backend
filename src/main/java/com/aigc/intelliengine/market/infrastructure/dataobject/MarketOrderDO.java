@@ -18,13 +18,17 @@ public class MarketOrderDO {
     private Long id;
     private String orderNo;
     private Long buyerId;
+    private Long sellerId;
     private BigDecimal totalAmount;
     private BigDecimal discountAmount;
-    private BigDecimal payAmount;
+    private BigDecimal payableAmount;
+    private String payMethod;
     private String currency;
     private String status;
     private LocalDateTime payTime;
     private String payChannel;
+    private LocalDateTime payTimeoutAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Integer isDeleted;
 }

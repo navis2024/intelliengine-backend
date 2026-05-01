@@ -52,7 +52,7 @@
     ]
   }
 }</component>
-  <component name="RunManager" selected="Spring Boot.ZqPlatApplication">
+  <component name="RunManager" selected="Spring Boot.IntelliEngineApplication">
     <configuration name="IntelliEngineApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" temporary="true" nameIsGenerated="true">
       <module name="ZQ_plat" />
       <option name="SPRING_BOOT_MAIN_CLASS" value="com.aigc.intelliengine.IntelliEngineApplication" />

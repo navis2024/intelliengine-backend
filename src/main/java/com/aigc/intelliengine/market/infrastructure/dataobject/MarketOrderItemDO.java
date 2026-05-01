@@ -17,8 +17,12 @@ public class MarketOrderItemDO {
     private Long id;
     private Long orderId;
     private Long templateId;
-    private String templateName;
-    private BigDecimal price;
+    private String templateTitle;
+    private String templateThumbnail;
+    private BigDecimal unitPrice;
     private Integer quantity;
     private BigDecimal subtotal;
+    private java.time.LocalDateTime createdAt;
+    private java.time.LocalDateTime updatedAt;
+    private Integer isDeleted;
 }

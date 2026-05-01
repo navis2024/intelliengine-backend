@@ -1,7 +1,10 @@
 package com.aigc.intelliengine.user.adapter.web;
 
+import com.aigc.intelliengine.common.redis.RateLimiterService;
+import com.aigc.intelliengine.common.redis.TokenBlacklistService;
 import com.aigc.intelliengine.common.result.ApiResponse;
 import com.aigc.intelliengine.common.result.PageResult;
+import com.aigc.intelliengine.common.security.JwtUtil;
 import com.aigc.intelliengine.user.adapter.web.request.UserLoginRequest;
 import com.aigc.intelliengine.user.adapter.web.request.UserRegisterRequest;
 import com.aigc.intelliengine.user.adapter.web.request.UserUpdateRequest;
@@ -33,11 +36,16 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserAppService userAppService;
+    private final TokenBlacklistService tokenBlacklistService;
+    private final RateLimiterService rateLimiterService;
+    private final JwtUtil jwtUtil;
 
     // ==================== 认证接口 (无需登录) ====================
 
     /**
      * 用户注册
+     * <p>
+     * 接口限流：同一IP每分5次
      *
      * @param request 注册请求参数
      * @return 用户信息
@@ -48,14 +56,23 @@ public class UserController {
             description = "新用户注册，用户名6-20位(字母数字下划线)，密码6-20位"
     )
     public ApiResponse<UserVO> register(
-            @Valid @RequestBody UserRegisterRequest request
+            @Valid @RequestBody UserRegisterRequest request,
+            HttpServletRequest httpRequest
     ) {
+        // 接口限流：同一IP每分5次
+        String clientIp = getClientIp(httpRequest);
+        if (!rateLimiterService.tryAcquire("user:register:" + clientIp, 5, 60)) {
+            return ApiResponse.error(429, "操作太频繁，请稍后再试");
+        }
+
         UserVO user = userAppService.register(request);
         return ApiResponse.success(user);
     }
 
     /**
      * 用户登录
+     * <p>
+     * 接口限流：同一IP每分10次，超限后锁定5分钟
      *
      * @param request 登录请求参数
      * @return Token和用户信息
@@ -66,10 +83,46 @@ public class UserController {
             description = "用户登录，支持用户名/邮箱/手机号+密码方式"
     )
     public ApiResponse<LoginResponse> login(
-            @Valid @RequestBody UserLoginRequest request
+            @Valid @RequestBody UserLoginRequest request,
+            HttpServletRequest httpRequest
     ) {
+        // 接口限流：同一IP每分10次
+        String clientIp = getClientIp(httpRequest);
+        if (!rateLimiterService.tryAcquire("user:login:" + clientIp, 10, 60)) {
+            return ApiResponse.error(429, "登录次数过多，请5分钟后再试");
+        }
+
         LoginResponse response = userAppService.login(request);
         return ApiResponse.success(response);
+    }
+
+    /**
+     * 用户登出
+     * <p>
+     * 将Token加入Redis黑名单，使Token立即失效
+     *
+     * @param httpRequest HTTP请求
+     * @return 登出结果
+     */
+    @PostMapping("/logout")
+    @Operation(
+            summary = "用户登出",
+            description = "用户登出，Token将立即失效"
+    )
+    public ApiResponse<Void> logout(HttpServletRequest httpRequest) {
+        // 获取Token
+        String authHeader = httpRequest.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            // 获取Token剩余有效期
+            Long expiration = jwtUtil.getExpirationDateFromToken(token);
+            if (expiration != null && expiration > 0) {
+                // 将Token加入黑名单，过期时间与Token一致
+                tokenBlacklistService.addToBlacklist(token, expiration);
+                return ApiResponse.success("登出成功", null);
+            }
+        }
+        return ApiResponse.error(400, "无效的Token");
     }
 
     // ==================== 用户管理接口 (需要登录) ====================
@@ -143,6 +196,22 @@ public class UserController {
     ) {
         PageResult<UserVO> pageResult = userAppService.listUsers(pageNum, pageSize, keyword);
         return ApiResponse.success(pageResult);
+    }
+
+    /**
+     * 获取客户端IP地址
+     * <p>
+     * 从X-Forwarded-For头或远程地址获取真实IP
+     *
+     * @param request HTTP请求
+     * @return IP地址
+     */
+    private String getClientIp(HttpServletRequest request) {
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
+            return xForwardedFor.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 
 }

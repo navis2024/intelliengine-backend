@@ -9,10 +9,11 @@ import lombok.Data;
 
 /**
  * 用户注册请求DTO
- *
+ * <p>
  * 接口: POST /api/v1/users/register
+ * 限流: 同一IP每分5次
  *
- * @author 智摩开发团队
+ * @author 智擎开发团队
  * @version 1.0.0
  * @since 2024
  */
@@ -22,35 +23,68 @@ public class UserRegisterRequest {
 
     /**
      * 用户名
-     * 规则: 6-20位，字母数字下划线
+     * <p>
+     * 要求: 6-20个字符，字母开头，只能包含字母、数字、下划线
      */
     @NotBlank(message = "用户名不能为空")
-    @Size(min = 6, max = 20, message = "用户名长度必须在6-20位之间")
-    @Pattern(regexp = "^[a-zA-Z0-9_]+$", message = "用户名只能包含字母、数字和下划线")
-    @Schema(description = "用户名（6-20位，字母数字下划线）", example = "zhangsan123", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Size(min = 6, max = 20, message = "用户名长度必须在6-20个字符之间")
+    @Pattern(regexp = "^[a-zA-Z][a-zA-Z0-9_]*$", message = "用户名必须以字母开头，只能包含字母、数字、下划线")
+    @Schema(
+            description = "用户名",
+            example = "zhangsan123",
+            requiredMode = Schema.RequiredMode.REQUIRED,
+            minLength = 6,
+            maxLength = 20,
+            pattern = "^[a-zA-Z][a-zA-Z0-9_]*$"
+    )
     private String username;
 
     /**
      * 密码
-     * 规则: 6-20位
+     * <p>
+     * 要求: 6-20个字符
      */
     @NotBlank(message = "密码不能为空")
-    @Size(min = 6, max = 20, message = "密码长度必须在6-20位之间")
-    @Schema(description = "密码（6-20位）", example = "123456", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Size(min = 6, max = 20, message = "密码长度必须在6-20个字符之间")
+    @Schema(
+            description = "密码",
+            example = "Password123",
+            requiredMode = Schema.RequiredMode.REQUIRED,
+            minLength = 6,
+            maxLength = 20
+    )
     private String password;
 
     /**
      * 邮箱（可选）
      */
     @Email(message = "邮箱格式不正确")
-    @Schema(description = "邮箱（可选）", example = "zhangsan@example.com")
+    @Schema(
+            description = "邮箱（可选）",
+            example = "zhangsan@example.com",
+            requiredMode = Schema.RequiredMode.NOT_REQUIRED
+    )
     private String email;
 
     /**
      * 手机号（可选）
-     * 规则: 中国大陆手机号
      */
     @Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
-    @Schema(description = "手机号（可选）", example = "13800138000")
+    @Schema(
+            description = "手机号（可选）",
+            example = "13800138000",
+            requiredMode = Schema.RequiredMode.NOT_REQUIRED,
+            pattern = "^1[3-9]\\d{9}$"
+    )
     private String phone;
+
+    /**
+     * 昵称（可选）
+     */
+    @Schema(
+            description = "昵称（可选）",
+            example = "张三",
+            requiredMode = Schema.RequiredMode.NOT_REQUIRED
+    )
+    private String nickname;
 }

@@ -1,5 +1,6 @@
 package com.aigc.intelliengine.common.security;
 
+import com.aigc.intelliengine.common.redis.TokenBlacklistService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,15 +18,22 @@ import java.util.ArrayList;
 
 /**
  * JWT认证过滤器
+ * <p>
  * 拦截请求，验证JWT Token并设置用户认证信息
+ * 功能：
+ * 1. 从请求头中提取JWT Token
+ * 2. 验证Token的有效性
+ * 3. 检查Token是否在黑名单中（用户已登出）
+ * 4. 设置用户认证信息到Security上下文
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-    
+
     private final JwtUtil jwtUtil;
     private final JwtConfig jwtConfig;
+    private final TokenBlacklistService tokenBlacklistService;
     
     @Override
     protected void doFilterInternal(HttpServletRequest request, 
@@ -46,6 +54,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         
         // 验证Token
         if (StringUtils.hasText(token) && jwtUtil.validateToken(token)) {
+            // 检查Token是否在黑名单中
+            if (tokenBlacklistService.isBlacklisted(token)) {
+                log.warn("Token已被加入黑名单，拒绝访问 - 路径: {}", requestPath);
+                filterChain.doFilter(request, response);
+                return;
+            }
+
             // 从Token中获取用户信息
             Long userId = jwtUtil.getUserIdFromToken(token);
             String username = jwtUtil.getUsernameFromToken(token);

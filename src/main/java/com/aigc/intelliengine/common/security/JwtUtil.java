@@ -136,13 +136,20 @@ public class JwtUtil {
     }
     
     /**
-     * 获取Token过期时间
-     * 
+     * 获取Token过时时间（秒）
+     * <p>
+     * 计算Token距离过期的剩余时间，用于登出时设置黑名单过期时间
+     *
      * @param token JWT Token
-     * @return 过期时间
+     * @return 剩余过期时间（秒），已过期返回0
      */
-    public Date getExpirationDateFromToken(String token) {
+    public Long getExpirationDateFromToken(String token) {
         Claims claims = parseToken(token);
-        return claims != null ? claims.getExpiration() : null;
+        if (claims != null) {
+            Date expiration = claims.getExpiration();
+            long remaining = (expiration.getTime() - System.currentTimeMillis()) / 1000;
+            return Math.max(0, remaining);
+        }
+        return 0L;
     }
 }

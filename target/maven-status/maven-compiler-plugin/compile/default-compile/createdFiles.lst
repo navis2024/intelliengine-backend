@@ -9,12 +9,14 @@ com/aigc/intelliengine/asset/domain/gateway/AssetGateway.class
 com/aigc/intelliengine/asset/infrastructure/dataobject/AssetDO.class
 com/aigc/intelliengine/market/domain/entity/MarketOrder.class
 com/aigc/intelliengine/user/adapter/web/response/UserVO.class
+com/aigc/intelliengine/common/redis/TokenBlacklistService.class
 com/aigc/intelliengine/project/infrastructure/mapper/ProjectMapper.class
 com/aigc/intelliengine/user/infrastructure/dataobject/UserDO.class
 com/aigc/intelliengine/project/domain/gateway/ProjectGateway.class
 com/aigc/intelliengine/project/domain/entity/ProjectMember.class
 com/aigc/intelliengine/review/infrastructure/dataobject/ReviewReplyDO.class
 com/aigc/intelliengine/common/exception/BusinessException.class
+com/aigc/intelliengine/common/redis/CacheService.class
 com/aigc/intelliengine/user/infrastructure/mapper/UserMapper.class
 com/aigc/intelliengine/market/infrastructure/dataobject/MarketTemplateDO.class
 com/aigc/intelliengine/market/infrastructure/mapper/MarketOrderMapper.class
@@ -23,12 +25,15 @@ com/aigc/intelliengine/common/controller/HealthController.class
 com/aigc/intelliengine/user/adapter/web/request/UserLoginRequest.class
 com/aigc/intelliengine/review/domain/entity/ReviewReply.class
 com/aigc/intelliengine/user/domain/entity/User.class
+com/aigc/intelliengine/market/vo/MarketOrderVO.class
 com/aigc/intelliengine/asset/infrastructure/repository/AssetRepositoryImpl.class
 com/aigc/intelliengine/review/app/service/ReviewAppService.class
 com/aigc/intelliengine/market/infrastructure/dataobject/MarketOrderDO.class
 com/aigc/intelliengine/user/infrastructure/repository/UserRepositoryImpl.class
+com/aigc/intelliengine/common/redis/RateLimiterService.class
 com/aigc/intelliengine/review/infrastructure/mapper/ReviewCommentMapper.class
 com/aigc/intelliengine/market/domain/gateway/MarketTemplateGateway.class
+com/aigc/intelliengine/market/infrastructure/mapper/MarketOrderItemMapper.class
 com/aigc/intelliengine/common/security/JwtUserDetails.class
 com/aigc/intelliengine/asset/app/service/AssetAppService.class
 com/aigc/intelliengine/asset/adapter/web/AssetController.class
@@ -38,6 +43,7 @@ com/aigc/intelliengine/review/vo/ReviewReplyVO.class
 com/aigc/intelliengine/user/adapter/web/request/UserUpdateRequest.class
 com/aigc/intelliengine/asset/vo/AssetVO.class
 com/aigc/intelliengine/common/security/SecurityConfig.class
+com/aigc/intelliengine/common/config/SwaggerConfig.class
 com/aigc/intelliengine/common/security/JwtConfig.class
 com/aigc/intelliengine/review/vo/ReviewCommentVO.class
 com/aigc/intelliengine/user/app/service/UserAppService.class
@@ -50,6 +56,7 @@ com/aigc/intelliengine/asset/domain/entity/Asset.class
 com/aigc/intelliengine/market/domain/gateway/MarketOrderGateway.class
 com/aigc/intelliengine/market/vo/MarketTemplateVO.class
 com/aigc/intelliengine/asset/infrastructure/mapper/AssetVersionMapper.class
+com/aigc/intelliengine/market/adapter/web/MarketOrderController.class
 com/aigc/intelliengine/project/dto/ProjectUpdateRequest.class
 com/aigc/intelliengine/market/infrastructure/dataobject/MarketOrderItemDO.class
 com/aigc/intelliengine/asset/domain/entity/AssetVersion.class
@@ -67,6 +74,7 @@ com/aigc/intelliengine/review/infrastructure/mapper/ReviewReplyMapper.class
 com/aigc/intelliengine/user/adapter/web/response/LoginResponse.class
 com/aigc/intelliengine/user/adapter/web/UserController.class
 com/aigc/intelliengine/market/adapter/web/MarketController.class
+com/aigc/intelliengine/common/config/RedisConfig.class
 com/aigc/intelliengine/project/adapter/web/ProjectMemberController.class
 com/aigc/intelliengine/project/domain/entity/Project.class
 com/aigc/intelliengine/market/domain/entity/MarketTemplate.class
