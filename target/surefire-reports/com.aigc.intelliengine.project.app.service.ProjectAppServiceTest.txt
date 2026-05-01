@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: com.aigc.intelliengine.project.app.service.ProjectAppServiceTest
--------------------------------------------------------------------------------
-Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.014 s -- in com.aigc.intelliengine.project.app.service.ProjectAppServiceTest

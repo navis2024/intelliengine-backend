@@ -19,6 +19,7 @@ com/aigc/intelliengine/user/infrastructure/mapper/UserMapper.class
 com/aigc/intelliengine/market/infrastructure/dataobject/MarketTemplateDO.class
 com/aigc/intelliengine/market/infrastructure/mapper/MarketOrderMapper.class
 com/aigc/intelliengine/review/dto/CommentCreateRequest.class
+com/aigc/intelliengine/common/controller/HealthController.class
 com/aigc/intelliengine/user/adapter/web/request/UserLoginRequest.class
 com/aigc/intelliengine/review/domain/entity/ReviewReply.class
 com/aigc/intelliengine/user/domain/entity/User.class

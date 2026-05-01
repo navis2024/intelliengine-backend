@@ -53,6 +53,7 @@
 /mnt/e/pj/ZQ_plat/src/main/java/com/aigc/intelliengine/common/result/ApiResponse.java
 /mnt/e/pj/ZQ_plat/src/main/java/com/aigc/intelliengine/common/security/SecurityConfig.java
 /mnt/e/pj/ZQ_plat/src/main/java/com/aigc/intelliengine/market/infrastructure/repository/MarketTemplateRepositoryImpl.java
+/mnt/e/pj/ZQ_plat/src/main/java/com/aigc/intelliengine/common/controller/HealthController.java
 /mnt/e/pj/ZQ_plat/src/main/java/com/aigc/intelliengine/project/infrastructure/dataobject/ProjectDO.java
 /mnt/e/pj/ZQ_plat/src/main/java/com/aigc/intelliengine/project/domain/entity/ProjectMember.java
 /mnt/e/pj/ZQ_plat/src/main/java/com/aigc/intelliengine/market/domain/gateway/MarketOrderGateway.java
