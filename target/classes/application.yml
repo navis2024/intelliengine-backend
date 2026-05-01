@@ -40,3 +40,10 @@ mybatis-plus:
 logging:
   level:
     com.aigc.intelliengine: DEBUG
+
+# JWT配置
+jwt:
+  secret: IntelliEngineSecretKey2024ForAIGCAssetManagementPlatformNavis
+  expiration: 604800000  # 7天(毫秒)
+  header: Authorization
+  prefix: "Bearer "

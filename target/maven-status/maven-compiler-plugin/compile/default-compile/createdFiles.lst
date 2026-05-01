@@ -28,6 +28,7 @@ com/aigc/intelliengine/market/infrastructure/dataobject/MarketOrderDO.class
 com/aigc/intelliengine/user/infrastructure/repository/UserRepositoryImpl.class
 com/aigc/intelliengine/review/infrastructure/mapper/ReviewCommentMapper.class
 com/aigc/intelliengine/market/domain/gateway/MarketTemplateGateway.class
+com/aigc/intelliengine/common/security/JwtUserDetails.class
 com/aigc/intelliengine/asset/app/service/AssetAppService.class
 com/aigc/intelliengine/asset/adapter/web/AssetController.class
 com/aigc/intelliengine/market/dto/MarketTemplateCreateRequest.class
@@ -35,11 +36,14 @@ com/aigc/intelliengine/project/infrastructure/repository/ProjectMemberRepository
 com/aigc/intelliengine/review/vo/ReviewReplyVO.class
 com/aigc/intelliengine/user/adapter/web/request/UserUpdateRequest.class
 com/aigc/intelliengine/asset/vo/AssetVO.class
+com/aigc/intelliengine/common/security/SecurityConfig.class
+com/aigc/intelliengine/common/security/JwtConfig.class
 com/aigc/intelliengine/review/vo/ReviewCommentVO.class
 com/aigc/intelliengine/user/app/service/UserAppService.class
 com/aigc/intelliengine/market/app/service/MarketAppService.class
 com/aigc/intelliengine/project/infrastructure/dataobject/ProjectMemberDO.class
 com/aigc/intelliengine/project/infrastructure/mapper/ProjectMemberMapper.class
+com/aigc/intelliengine/common/security/JwtUtil.class
 com/aigc/intelliengine/market/infrastructure/repository/MarketTemplateRepositoryImpl.class
 com/aigc/intelliengine/asset/domain/entity/Asset.class
 com/aigc/intelliengine/market/domain/gateway/MarketOrderGateway.class
@@ -69,6 +73,7 @@ com/aigc/intelliengine/asset/dto/AssetUpdateRequest.class
 com/aigc/intelliengine/common/result/PageResult.class
 com/aigc/intelliengine/IntelliEngineApplication.class
 com/aigc/intelliengine/asset/dto/AssetCreateRequest.class
+com/aigc/intelliengine/common/security/JwtAuthenticationFilter.class
 com/aigc/intelliengine/common/exception/GlobalExceptionHandler.class
 com/aigc/intelliengine/review/dto/ReplyCreateRequest.class
 com/aigc/intelliengine/common/query/PageQuery.class

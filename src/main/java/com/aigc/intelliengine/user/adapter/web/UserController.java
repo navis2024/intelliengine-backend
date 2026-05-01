@@ -7,16 +7,14 @@ import com.aigc.intelliengine.user.adapter.web.request.UserRegisterRequest;
 import com.aigc.intelliengine.user.adapter.web.request.UserUpdateRequest;
 import com.aigc.intelliengine.user.adapter.web.response.LoginResponse;
 import com.aigc.intelliengine.user.adapter.web.response.UserVO;
+import com.aigc.intelliengine.user.app.service.UserAppService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 
 /**
  * 用户模块控制器
@@ -30,8 +28,11 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("/v1/users")
+@RequiredArgsConstructor
 @Tag(name = "User", description = "用户管理 - 注册/登录/用户信息管理")
 public class UserController {
+
+    private final UserAppService userAppService;
 
     // ==================== 认证接口 (无需登录) ====================
 
@@ -49,8 +50,7 @@ public class UserController {
     public ApiResponse<UserVO> register(
             @Valid @RequestBody UserRegisterRequest request
     ) {
-        // TODO: 调用应用层服务处理注册逻辑
-        UserVO user = createMockUser(request.getUsername(), request.getEmail(), request.getPhone());
+        UserVO user = userAppService.register(request);
         return ApiResponse.success(user);
     }
 
@@ -68,11 +68,7 @@ public class UserController {
     public ApiResponse<LoginResponse> login(
             @Valid @RequestBody UserLoginRequest request
     ) {
-        // TODO: 调用应用层服务处理登录逻辑
-        LoginResponse response = new LoginResponse();
-        response.setToken("mock_token_" + UUID.randomUUID());
-        response.setExpiresIn(7200);
-        response.setUser(createMockUser(request.getUsername(), null, null));
+        LoginResponse response = userAppService.login(request);
         return ApiResponse.success(response);
     }
 
@@ -93,9 +89,7 @@ public class UserController {
             @Parameter(description = "用户ID", required = true)
             @PathVariable String id
     ) {
-        // TODO: 调用应用层服务查询用户
-        UserVO user = createMockUser("user_" + id, "user@example.com", "13800138000");
-        user.setId(id);
+        UserVO user = userAppService.getUserById(id);
         return ApiResponse.success(user);
     }
 
@@ -106,20 +100,21 @@ public class UserController {
      * @param request 更新请求参数
      * @return 更新后的用户信息
      */
-    @PutMapping("/{id}")
+    @PutMapping("/me")
     @Operation(
-            summary = "更新用户信息",
-            description = "更新用户邮箱、手机号、头像等信息"
+            summary = "更新当前用户信息",
+            description = "更新当前登录用户的邮箱、手机号、头像等信息"
     )
-    public ApiResponse<UserVO> updateUser(
-            @Parameter(description = "用户ID", required = true)
-            @PathVariable String id,
-            @Valid @RequestBody UserUpdateRequest request
+    public ApiResponse<UserVO> updateCurrentUser(
+            @Valid @RequestBody UserUpdateRequest request,
+            HttpServletRequest httpRequest
     ) {
-        // TODO: 调用应用层服务更新用户信息
-        UserVO user = createMockUser("user_" + id, request.getEmail(), request.getPhone());
-        user.setId(id);
-        user.setAvatar(request.getAvatar());
+        // 从request属性中获取当前登录用户ID（由JWT过滤器设置）
+        Long userId = (Long) httpRequest.getAttribute("userId");
+        if (userId == null) {
+            return ApiResponse.error(401, "未登录");
+        }
+        UserVO user = userAppService.updateUser(String.valueOf(userId), request);
         return ApiResponse.success(user);
     }
 
@@ -146,31 +141,8 @@ public class UserController {
             @Parameter(description = "搜索关键词（用户名/邮箱）")
             @RequestParam(required = false) String keyword
     ) {
-        // TODO: 调用应用层服务查询用户列表
-        List<UserVO> list = new ArrayList<>();
-        for (int i = 0; i < 5; i++) {
-            list.add(createMockUser("user" + i, "user" + i + "@example.com", "1380013800" + i));
-        }
-
-        PageResult<UserVO> pageResult = PageResult.of(list, 100L, pageNum, pageSize);
+        PageResult<UserVO> pageResult = userAppService.listUsers(pageNum, pageSize, keyword);
         return ApiResponse.success(pageResult);
     }
 
-    // ==================== 私有方法 ====================
-
-    /**
-     * 创建模拟用户数据（用于测试）
-     */
-    private UserVO createMockUser(String username, String email, String phone) {
-        UserVO user = new UserVO();
-        user.setId(String.valueOf(UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE));
-        user.setUsername(username);
-        user.setEmail(email != null ? email : username + "@example.com");
-        user.setPhone(phone != null ? phone : "13800138000");
-        user.setAvatar("https://api.dicebear.com/7.x/avataaars/svg?seed=" + username);
-        user.setStatus(1);
-        user.setCreateTime(LocalDateTime.now());
-        user.setUpdateTime(LocalDateTime.now());
-        return user;
-    }
 }

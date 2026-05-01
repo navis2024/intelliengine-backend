@@ -24,9 +24,11 @@
 /mnt/e/pj/ZQ_plat/src/main/java/com/aigc/intelliengine/project/adapter/web/ProjectController.java
 /mnt/e/pj/ZQ_plat/src/main/java/com/aigc/intelliengine/project/domain/entity/Project.java
 /mnt/e/pj/ZQ_plat/src/main/java/com/aigc/intelliengine/asset/dto/AssetCreateRequest.java
+/mnt/e/pj/ZQ_plat/src/main/java/com/aigc/intelliengine/common/security/JwtAuthenticationFilter.java
 /mnt/e/pj/ZQ_plat/src/main/java/com/aigc/intelliengine/project/infrastructure/mapper/ProjectMemberMapper.java
 /mnt/e/pj/ZQ_plat/src/main/java/com/aigc/intelliengine/review/adapter/web/ReviewController.java
 /mnt/e/pj/ZQ_plat/src/main/java/com/aigc/intelliengine/user/adapter/web/response/LoginResponse.java
+/mnt/e/pj/ZQ_plat/src/main/java/com/aigc/intelliengine/common/security/JwtUtil.java
 /mnt/e/pj/ZQ_plat/src/main/java/com/aigc/intelliengine/review/vo/ReviewCommentVO.java
 /mnt/e/pj/ZQ_plat/src/main/java/com/aigc/intelliengine/market/domain/entity/MarketTemplate.java
 /mnt/e/pj/ZQ_plat/src/main/java/com/aigc/intelliengine/review/infrastructure/mapper/ReviewCommentMapper.java
@@ -41,6 +43,7 @@
 /mnt/e/pj/ZQ_plat/src/main/java/com/aigc/intelliengine/market/domain/gateway/MarketTemplateGateway.java
 /mnt/e/pj/ZQ_plat/src/main/java/com/aigc/intelliengine/user/adapter/web/request/UserUpdateRequest.java
 /mnt/e/pj/ZQ_plat/src/main/java/com/aigc/intelliengine/review/infrastructure/dataobject/ReviewReplyDO.java
+/mnt/e/pj/ZQ_plat/src/main/java/com/aigc/intelliengine/common/security/JwtUserDetails.java
 /mnt/e/pj/ZQ_plat/src/main/java/com/aigc/intelliengine/IntelliEngineApplication.java
 /mnt/e/pj/ZQ_plat/src/main/java/com/aigc/intelliengine/common/query/PageQuery.java
 /mnt/e/pj/ZQ_plat/src/main/java/com/aigc/intelliengine/market/infrastructure/dataobject/MarketOrderDO.java
@@ -48,6 +51,7 @@
 /mnt/e/pj/ZQ_plat/src/main/java/com/aigc/intelliengine/review/infrastructure/dataobject/ReviewCommentDO.java
 /mnt/e/pj/ZQ_plat/src/main/java/com/aigc/intelliengine/user/infrastructure/dataobject/UserDO.java
 /mnt/e/pj/ZQ_plat/src/main/java/com/aigc/intelliengine/common/result/ApiResponse.java
+/mnt/e/pj/ZQ_plat/src/main/java/com/aigc/intelliengine/common/security/SecurityConfig.java
 /mnt/e/pj/ZQ_plat/src/main/java/com/aigc/intelliengine/market/infrastructure/repository/MarketTemplateRepositoryImpl.java
 /mnt/e/pj/ZQ_plat/src/main/java/com/aigc/intelliengine/project/infrastructure/dataobject/ProjectDO.java
 /mnt/e/pj/ZQ_plat/src/main/java/com/aigc/intelliengine/project/domain/entity/ProjectMember.java
@@ -60,6 +64,7 @@
 /mnt/e/pj/ZQ_plat/src/main/java/com/aigc/intelliengine/user/infrastructure/mapper/UserMapper.java
 /mnt/e/pj/ZQ_plat/src/main/java/com/aigc/intelliengine/common/exception/GlobalExceptionHandler.java
 /mnt/e/pj/ZQ_plat/src/main/java/com/aigc/intelliengine/user/domain/service/UserDomainService.java
+/mnt/e/pj/ZQ_plat/src/main/java/com/aigc/intelliengine/common/security/JwtConfig.java
 /mnt/e/pj/ZQ_plat/src/main/java/com/aigc/intelliengine/market/vo/MarketTemplateVO.java
 /mnt/e/pj/ZQ_plat/src/main/java/com/aigc/intelliengine/asset/infrastructure/dataobject/AssetDO.java
 /mnt/e/pj/ZQ_plat/src/main/java/com/aigc/intelliengine/project/infrastructure/repository/ProjectRepositoryImpl.java

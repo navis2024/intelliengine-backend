@@ -2,6 +2,7 @@ package com.aigc.intelliengine.user.app.service;
 
 import cn.hutool.crypto.digest.BCrypt;
 import com.aigc.intelliengine.common.result.PageResult;
+import com.aigc.intelliengine.common.security.JwtUtil;
 import com.aigc.intelliengine.user.adapter.web.request.UserLoginRequest;
 import com.aigc.intelliengine.user.adapter.web.request.UserRegisterRequest;
 import com.aigc.intelliengine.user.adapter.web.request.UserUpdateRequest;
@@ -10,6 +11,7 @@ import com.aigc.intelliengine.user.adapter.web.response.UserVO;
 import com.aigc.intelliengine.user.domain.entity.User;
 import com.aigc.intelliengine.user.domain.gateway.UserGateway;
 import com.aigc.intelliengine.user.domain.service.UserDomainService;
+import com.aigc.intelliengine.user.infrastructure.repository.UserRepositoryImpl;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.springframework.stereotype.Service;
 
@@ -42,10 +44,15 @@ public class UserAppService {
 
     private final UserDomainService userDomainService;
     private final UserGateway userGateway;
+    private final JwtUtil jwtUtil;
+    private final UserRepositoryImpl userRepository;
 
-    public UserAppService(UserDomainService userDomainService, UserGateway userGateway) {
+    public UserAppService(UserDomainService userDomainService, UserGateway userGateway, 
+                         JwtUtil jwtUtil, UserRepositoryImpl userRepository) {
         this.userDomainService = Objects.requireNonNull(userDomainService, "UserDomainService不能为空");
         this.userGateway = Objects.requireNonNull(userGateway, "UserGateway不能为空");
+        this.jwtUtil = Objects.requireNonNull(jwtUtil, "JwtUtil不能为空");
+        this.userRepository = Objects.requireNonNull(userRepository, "UserRepository不能为空");
     }
 
     /**
@@ -107,18 +114,22 @@ public class UserAppService {
         // 2. 验证登录状态
         userDomainService.validateLoginStatus(user);
 
-        // 3. 验证密码
-        // 注意：实际中需要从数据库获取密码哈希进行校验
-        // 这里简化处理，实际项目需要调整
-        // BCrypt.checkpw(request.getPassword(), storedPasswordHash);
+        // 3. 验证密码 - 从数据库获取密码哈希进行校验
+        String storedPasswordHash = userRepository.getPasswordByUsername(user.getUsername());
+        if (storedPasswordHash == null || !BCrypt.checkpw(request.getPassword(), storedPasswordHash)) {
+            throw new IllegalArgumentException("账号或密码错误");
+        }
 
-        // 4. 生成Token（简化处理）
-        String token = generateToken(user.getId());
+        // 4. 使用JWT生成Token
+        String token = jwtUtil.generateToken(Long.valueOf(user.getId()), user.getUsername());
 
-        // 5. 构建响应
+        // 5. 更新最后登录时间
+        userRepository.updateLastLoginTime(Long.valueOf(user.getId()));
+
+        // 6. 构建响应
         LoginResponse response = new LoginResponse();
         response.setToken(token);
-        response.setExpiresIn(7200); // 2小时
+        response.setExpiresIn(604800); // 7天(秒)
         response.setUser(toVO(user));
 
         return response;
@@ -171,20 +182,6 @@ public class UserAppService {
         
         // 模拟空分页结果
         return PageResult.empty(pageNum, pageSize);
-    }
-
-    /**
-     * 生成Token（简化版）
-     * <p>
-     * 实际项目中应使用JWT或其他Token机制
-     *
-     * @param userId 用户ID
-     * @return Token字符串
-     */
-    private String generateToken(String userId) {
-        // 实际项目中应使用JWT生成Token
-        // 这里返回简化版本用于示例
-        return "token_" + userId + "_" + System.currentTimeMillis();
     }
 
     /**
