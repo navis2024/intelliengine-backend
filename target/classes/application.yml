@@ -22,14 +22,17 @@ spring:
 
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml
-  type-aliases-package: com.aigc.intelliengine.**.infrastructure.dataobject
+  type-aliases-package: com.aigc.intelliengine.user.infrastructure.dataobject
   global-config:
     db-config:
-      logic-delete-field: deleted
+      # 逻辑删除字段配置 - 对应user_account表的is_deleted字段
+      logic-delete-field: isDeleted
       logic-not-delete-value: 0
       logic-delete-value: 1
-      id-type: assign_id
-      table-prefix: t_
+      # ID策略 - 使用数据库自增
+      id-type: auto
+      # 表前缀 - user_account没有前缀
+      table-prefix: ""
   configuration:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
