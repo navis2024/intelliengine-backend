@@ -1,12 +1,13 @@
 package com.aigc.intelliengine.common.security;
 
 import com.aigc.intelliengine.common.redis.TokenBlacklistService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -16,78 +17,100 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 
-/**
- * JWT认证过滤器
- * <p>
- * 拦截请求，验证JWT Token并设置用户认证信息
- * 功能：
- * 1. 从请求头中提取JWT Token
- * 2. 验证Token的有效性
- * 3. 检查Token是否在黑名单中（用户已登出）
- * 4. 设置用户认证信息到Security上下文
- */
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    private static final String SESSION_PREFIX = "session:user:";
 
     private final JwtUtil jwtUtil;
     private final JwtConfig jwtConfig;
     private final TokenBlacklistService tokenBlacklistService;
-    
+    private final StringRedisTemplate stringRedisTemplate;
+    private final ObjectMapper objectMapper;
+
+    public JwtAuthenticationFilter(JwtUtil jwtUtil, JwtConfig jwtConfig,
+                                   TokenBlacklistService tokenBlacklistService,
+                                   StringRedisTemplate stringRedisTemplate) {
+        this.jwtUtil = jwtUtil;
+        this.jwtConfig = jwtConfig;
+        this.tokenBlacklistService = tokenBlacklistService;
+        this.stringRedisTemplate = stringRedisTemplate;
+        this.objectMapper = new ObjectMapper();
+    }
+
     @Override
-    protected void doFilterInternal(HttpServletRequest request, 
-                                    HttpServletResponse response, 
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-        
-        // 获取请求路径
-        String requestPath = request.getRequestURI();
-        
-        // 跳过不需要认证的路径
-        if (isPublicPath(requestPath)) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-        
-        // 获取Token
-        String token = extractTokenFromRequest(request);
-        
-        // 验证Token
-        if (StringUtils.hasText(token) && jwtUtil.validateToken(token)) {
-            // 检查Token是否在黑名单中
-            if (tokenBlacklistService.isBlacklisted(token)) {
-                log.warn("Token已被加入黑名单，拒绝访问 - 路径: {}", requestPath);
+        try {
+            String requestPath = request.getRequestURI();
+
+            if (isPublicPath(requestPath)) {
                 filterChain.doFilter(request, response);
                 return;
             }
 
-            // 从Token中获取用户信息
-            Long userId = jwtUtil.getUserIdFromToken(token);
-            String username = jwtUtil.getUsernameFromToken(token);
-            
-            if (userId != null) {
-                // 创建认证对象
-                UsernamePasswordAuthenticationToken authentication = 
-                    new UsernamePasswordAuthenticationToken(
-                        new JwtUserDetails(userId, username), 
-                        null, 
-                        new ArrayList<>()
-                    );
-                
-                // 设置认证信息到Security上下文
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-                
-                // 将userId设置到request属性中，方便后续使用
-                request.setAttribute("userId", userId);
-                request.setAttribute("username", username);
-                
-                log.debug("JWT认证成功 - 用户: {}, 路径: {}", username, requestPath);
+            String token = extractTokenFromRequest(request);
+
+            if (StringUtils.hasText(token) && jwtUtil.validateToken(token)) {
+                if (tokenBlacklistService.isBlacklisted(token)) {
+                    log.warn("Token已被加入黑名单，拒绝访问 - 路径: {}", requestPath);
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+
+                Long userId = jwtUtil.getUserIdFromToken(token);
+                String username = jwtUtil.getUsernameFromToken(token);
+
+                if (userId != null) {
+                    // Populate Spring Security context
+                    UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(
+                            new JwtUserDetails(userId, username),
+                            null,
+                            new ArrayList<>()
+                        );
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                    // Populate ThreadLocal via UserContextHolder (Redis shared session)
+                    UserSession session = loadOrCreateSession(userId, username, token);
+                    UserContextHolder.set(session);
+
+                    // Legacy: keep request attributes for backward compatibility
+                    request.setAttribute("userId", userId);
+                    request.setAttribute("username", username);
+
+                    log.debug("JWT认证成功 - 用户: {}, 路径: {}", username, requestPath);
+                }
+            } else {
+                log.debug("JWT认证失败或Token缺失 - 路径: {}", requestPath);
             }
-        } else {
-            log.debug("JWT认证失败或Token缺失 - 路径: {}", requestPath);
+
+            filterChain.doFilter(request, response);
+        } finally {
+            UserContextHolder.clear();
         }
-        
-        filterChain.doFilter(request, response);
+    }
+
+    private UserSession loadOrCreateSession(Long userId, String username, String token) {
+        String sessionKey = SESSION_PREFIX + userId;
+        try {
+            String json = stringRedisTemplate.opsForValue().get(sessionKey);
+            if (json != null) {
+                return objectMapper.readValue(json, UserSession.class);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to read Redis session for userId={}, creating new", userId, e);
+        }
+        UserSession session = new UserSession(userId, username, System.currentTimeMillis(), token);
+        try {
+            String json = objectMapper.writeValueAsString(session);
+            stringRedisTemplate.opsForValue().set(sessionKey, json, jwtConfig.getExpiration(), java.util.concurrent.TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            log.warn("Failed to write Redis session for userId={}", userId, e);
+        }
+        return session;
     }
     
     /**
@@ -111,9 +134,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      * @return true表示公开路径
      */
     private boolean isPublicPath(String requestPath) {
-        return requestPath.contains("/swagger-ui") 
+        return requestPath.contains("/swagger-ui")
             || requestPath.contains("/v3/api-docs")
-            || requestPath.contains("/api/v1/users/register")
-            || requestPath.contains("/api/v1/users/login");
+            || requestPath.contains("/v1/users/register")
+            || requestPath.contains("/v1/users/login");
     }
 }

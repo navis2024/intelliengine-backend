@@ -1,50 +1,9 @@
-# 智擎(IntelliEngine) - Docker Compose 配置
-# 一键启动完整应用环境
+# 智擎(IntelliEngine) - 完整 Docker Compose 部署
+# 一键启动: docker-compose up -d
 
 version: '3.8'
 
 services:
-  # ==================== 后端服务 ====================
-  backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: intelliengine-backend
-    restart: unless-stopped
-    ports:
-      - "8081:8081"
-    environment:
-      # 数据库配置
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/intelliengine?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false
-      - SPRING_DATASOURCE_USERNAME=intelliengine
-      - SPRING_DATASOURCE_PASSWORD=IntelliEngine@2024
-      # Redis 配置
-      - SPRING_REDIS_HOST=redis
-      - SPRING_REDIS_PORT=6379
-      - SPRING_REDIS_PASSWORD=Redis@2024
-      # JWT 配置
-      - JWT_SECRET=${JWT_SECRET:-IntelliEngineSecretKey2024ForAIGCAssetManagementPlatformNavis}
-      - JWT_EXPIRATION=604800000
-      # 日志级别
-      - LOGGING_LEVEL_ROOT=INFO
-      - LOGGING_LEVEL_COM_AIGC_INTELLIENGINE=INFO
-    depends_on:
-      mysql:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    networks:
-      - intelliengine-network
-    volumes:
-      - ./logs:/app/logs
-      - /etc/localtime:/etc/localtime:ro
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8081/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-
   # ==================== MySQL 数据库 ====================
   mysql:
     image: mysql:8.0.36
@@ -53,24 +12,23 @@ services:
     ports:
       - "3307:3306"
     environment:
-      - MYSQL_ROOT_PASSWORD=Root@2024
-      - MYSQL_DATABASE=intelliengine
-      - MYSQL_USER=intelliengine
-      - MYSQL_PASSWORD=IntelliEngine@2024
+      MYSQL_ROOT_PASSWORD: IntelliEngine@2025
+      MYSQL_DATABASE: intelliengine
+      TZ: Asia/Shanghai
     volumes:
       - mysql-data:/var/lib/mysql
-      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+      - ./sql/test_data.sql:/docker-entrypoint-initdb.d/02-test_data.sql:ro
       - /etc/localtime:/etc/localtime:ro
     command: >
       --default-authentication-plugin=mysql_native_password
       --character-set-server=utf8mb4
       --collation-server=utf8mb4_unicode_ci
       --max-connections=500
-      --innodb-buffer-pool-size=512M
     networks:
       - intelliengine-network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pRoot@2024"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pIntelliEngine@2025"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -83,23 +41,97 @@ services:
     restart: unless-stopped
     ports:
       - "6379:6379"
-    command: >
-      redis-server
-      --appendonly yes
-      --requirepass Redis@2024
-      --maxmemory 256mb
-      --maxmemory-policy allkeys-lru
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
     volumes:
       - redis-data:/data
       - /etc/localtime:/etc/localtime:ro
     networks:
       - intelliengine-network
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "Redis@2024", "ping"]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 3s
       retries: 5
-      start_period: 10s
+
+  # ==================== RabbitMQ 消息队列 ====================
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    container_name: intelliengine-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: IntelliEngine@2025
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - intelliengine-network
+
+  # ==================== MinIO 对象存储 ====================
+  minio:
+    image: minio/minio:latest
+    container_name: intelliengine-minio
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: IntelliEngine@2025
+    volumes:
+      - minio-data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - intelliengine-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ==================== 后端服务 ====================
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: intelliengine-backend
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/intelliengine?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: IntelliEngine@2025
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: IntelliEngine@2025
+      MINIO_BUCKET: jimeng
+      JWT_SECRET: IntelliEngineSecretKey2024ForAIGCAssetManagementPlatformNavis
+      JWT_EXPIRATION: 604800000
+      LOGGING_LEVEL_COM_AIGC_INTELLIENGINE: INFO
+      TZ: Asia/Shanghai
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+    networks:
+      - intelliengine-network
+    volumes:
+      - ./logs:/app/logs
+      - /etc/localtime:/etc/localtime:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
   # ==================== Nginx 反向代理 ====================
   nginx:
@@ -108,24 +140,19 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
-      - "443:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/ssl:/etc/nginx/ssl:ro
-      - /etc/localtime:/etc/localtime:ro
     depends_on:
       - backend
     networks:
       - intelliengine-network
 
-# ==================== 存储卷 ====================
 volumes:
   mysql-data:
-    driver: local
   redis-data:
-    driver: local
+  rabbitmq-data:
+  minio-data:
 
-# ==================== 网络 ====================
 networks:
   intelliengine-network:
     driver: bridge

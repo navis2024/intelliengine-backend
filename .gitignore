@@ -1,0 +1,30 @@
+# Maven
+target/
+*.jar
+*.war
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# Logs
+logs/
+*.log
+
+# Claude Code
+.claude/
+
+# Test results
+test-results/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local

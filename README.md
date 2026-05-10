@@ -1,158 +1,179 @@
-# 智擎 (IntelliEngine) 后端服务
+# 智擎 (IntelliEngine) — AIGC 资产管理与协作平台
 
 [![Java](https://img.shields.io/badge/Java-17-blue)](https://openjdk.org/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2-brightgreen)](https://spring.io/projects/spring-boot)
+[![Vue](https://img.shields.io/badge/Vue-3-green)](https://vuejs.org/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-orange)](https://www.mysql.com/)
+[![Redis](https://img.shields.io/badge/Redis-Caching%20%7C%20Lock%20%7C%20Session-red)](https://redis.io/)
+[![RabbitMQ](https://img.shields.io/badge/RabbitMQ-Async%20Queue-orange)](https://www.rabbitmq.com/)
+[![MinIO](https://img.shields.io/badge/MinIO-Object%20Storage-blue)](https://min.io/)
+[![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
-智擎是一个AIGC资产管理与协作平台，提供项目管理、资产版本控制、视频审批、模板市场等核心功能。
+面向 AIGC 创作者的资产管理平台，支持视频/图片等资产的版本管理、AI 元数据标注、智能分析报告、模板市场交易。
+
+## 架构总览
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                       Nginx :80                              │
+│                  /api → backend :8081                        │
+│                  /    → frontend  (static)                    │
+└──────────────────────────────────────────────────────────────┘
+         │                    │              │
+    ┌────▼────┐          ┌────▼────┐   ┌─────▼──────┐
+    │ Vue 3   │          │ Spring  │   │  Docker    │
+    │ Tailwind│          │ Boot 3.2│   │  Compose   │
+    │ Pinia   │          │ COLA    │   │  Stack     │
+    └─────────┘          └───┬─────┘   └────────────┘
+                             │
+    ┌────────────────────────┼──────────────────────────┐
+    │                        │                          │
+┌───▼────┐  ┌────────┐  ┌───▼────┐  ┌──────────┐  ┌───▼────┐
+│ MySQL  │  │ Redis  │  │ MinIO  │  │ RabbitMQ │  │FFmpeg  │
+│  8.0   │  │Cache/  │  │Object  │  │  Async   │  │Frame   │
+│ :3307  │  │Lock/   │  │Storage │  │ Extract  │  │Extract │
+│        │  │Session │  │ :9000  │  │  Queue   │  │        │
+└────────┘  └────────┘  └────────┘  └──────────┘  └────────┘
+```
 
 ## 技术栈
 
-- **Java 17** - 主要编程语言
-- **Spring Boot 3.2** - 应用框架
-- **Spring Security + JWT** - 认证授权
-- **MyBatis Plus 3.5.5** - ORM框架
-- **MySQL 8.0** - 数据库
-- **Redis** - 缓存与会话
-- **COLA 4.0** - 分层架构
-- **Swagger/OpenAPI** - API文档
-- **Docker** - 容器化部署
+| 层次 | 技术 | 说明 |
+|------|------|------|
+| 后端框架 | Spring Boot 3.2 + Java 17 | COLA 分层架构 |
+| ORM | MyBatis-Plus 3.5.5 | Lambda QueryWrapper + 分页 |
+| 认证 | Spring Security + JWT (jjwt 0.12) | Token 黑名单 + ThreadLocal 会话 |
+| 数据库 | MySQL 8.0 | 15 张表，Docker 部署 |
+| 缓存 | Redis + Caffeine L1/L2 | 多级缓存 + 热点 Key 检测 |
+| 分布式锁 | Redis + Lua 脚本 | UUID 持有者校验，原子释放 |
+| 消息队列 | RabbitMQ (Spring AMQP) | 异步视频抽帧 + 死信队列 |
+| 对象存储 | MinIO SDK 8.5 | 预签名 URL 上传 |
+| 视频处理 | FFmpeg | I-frame 提取，自动检测路径 |
+| LLM | OpenAI 兼容接口 | 策略模式，可替换 |
+| 前端 | Vue 3 + TypeScript + Tailwind | Pinia 状态管理 |
+| 文档 | SpringDoc OpenAPI 2.3 | Swagger UI |
+| 部署 | Docker Compose | MySQL + Redis + RabbitMQ + MinIO + Nginx |
 
 ## 项目结构
 
-采用COLA分层架构：
-
 ```
-com.aigc.intelliengine
-├── user              # 用户模块
-├── project           # 项目管理模块
-├── asset             # 资产管理模块
-├── review            # 审批批注模块
-├── market            # 市场交易模块
-└── common            # 公共组件
+ZQ_plat/src/main/java/com/aigc/intelliengine/
+├── user/           # 用户模块 — 注册/登录/信息管理
+├── project/        # 项目管理 — CRUD/成员管理/权限校验
+├── asset/          # 资产管理 — 上传/版本控制/MinIO 存储
+├── review/         # 审批批注 — 按帧批注/评论/回复
+├── market/         # 模板市场 — 发布/购买/收藏
+├── agent/          # AI Agent — AI视频元数据/抽帧/Prompt库/报告/数据采集
+├── notification/   # 通知模块 — 站内消息
+└── common/
+    ├── config/     # RabbitMQ / Cache 配置
+    ├── redis/      # MultiLevelCache / DistributedLock / HotKeyDetector / RateLimiter
+    ├── security/   # JwtUtil / JwtAuthFilter / UserContextHolder / MembershipValidator
+    ├── controller/ # HealthController
+    ├── model/      # PageResult / ApiResponse
+    └── exception/  # BusinessException / GlobalExceptionHandler
+
+front_ZQ/intelliengine-frontend/src/
+├── views/          # Dashboard / Projects / Assets / Market / Agent / DraftBoard
+├── api/            # 后端 API 封装 (axios)
+├── types/          # TypeScript 类型定义
+└── stores/         # Pinia 状态管理
 ```
 
-## 模块统计
+## 核心亮点
 
-| 模块 | 文件数 | 功能概述 |
-|------|--------|---------|
-| user | 13 | 用户注册、登录、信息管理 |
-| project | 15 | 项目创建、成员管理 |
-| asset | 13 | 资产上传、版本控制 |
-| review | 14 | 视频批注、评论回复 |
-| market | 14 | 模板市场、订单管理 |
-| common | 7 | 全局异常、统一响应 |
+### 1. Redis 五种场景深度应用
+- **分布式锁**：Lua 脚本原子释放 + UUID 持有者校验，防止误删他人锁
+- **多级缓存**：Caffeine L1 + Redis L2，穿透/击穿/雪崩三重防护，热点 Key 滑动窗口自动发现
+- **Session 共享**：Redis 存储用户会话（7天 TTL），ThreadLocal 上下文传递，多实例无状态
+- **限流器**：基于 Redis 的 API 限流
+- **Token 黑名单**：JWT 登出后加入 Redis 黑名单
 
-**总计: 82个Java源文件 + 3个单元测试类**
+### 2. 数据可见性集中鉴权
+- `MembershipValidator` 统一入口：`requireMembership` / `requireProjectOwner` / `requireAssetAccess`
+- 资产所有权多态：USER 类型仅创建者可访问，PROJECT 类型组成员可访问
+- 10 个安全漏洞一次性封堵
+
+### 3. LLM 策略模式
+- `PromptAnalysisService` 自动选择 OpenAI / Mock 策略
+- `llm.enabled=true` 时激活真实 LLM 分析（OpenAI 兼容接口）
+- LLM 不可用时自动回退基础增强
+
+### 4. RabbitMQ 异步抽帧
+- `POST /v1/agent/videos` → 入库 → 发 MQ 消息 → 立即返回 200
+- `VideoFrameWorker` 异步消费，提取 I-frame，失败 3 次进死信队列
+- HTTP 线程不再阻塞在 FFmpeg 进程上
 
 ## 快速开始
 
-### 方式一：Docker部署（推荐）
+### Docker 一键部署
 
 ```bash
-# 1. 克隆项目
-git clone https://github.com/navis2024/intelliengine-backend.git
-cd intelliengine-backend
-
-# 2. 一键部署
-./deploy.sh start
-
-# 3. 访问服务
-# API文档: http://localhost:8081/api/swagger-ui.html
-# MySQL: localhost:3307
-# Redis: localhost:6379
+cd ZQ_plat
+docker compose up -d
+# 服务将在 localhost:8081 启动
 ```
 
-部署脚本命令：
+Docker Compose 包含：MySQL 8.0、Redis 7、RabbitMQ 3.12、MinIO、Nginx、Backend
+
+### 本地开发
+
+**环境要求**：JDK 17+ / Maven 3.8+ / Node 18+
+
 ```bash
-./deploy.sh start    # 启动服务
-./deploy.sh stop     # 停止服务
-./deploy.sh restart  # 重启服务
-./deploy.sh logs     # 查看日志
-./deploy.sh status   # 查看状态
-```
+# 1. 启动中间件
+docker compose up -d mysql redis rabbitmq minio
 
-### 方式二：本地运行
+# 2. 初始化数据库
+docker exec -i intelliengine-mysql mysql -uroot -pIntelliEngine@2025 intelliengine < sql/init.sql
 
-#### 1. 环境要求
-- JDK 17+
-- Maven 3.8+
-- MySQL 8.0
-- Docker（可选）
-
-### 2. 数据库配置
-```yaml
-# application.yml
-spring:
-  datasource:
-    url: jdbc:mysql://localhost:3307/intelliengine
-    username: root
-    password: IntelliEngine@2025
-```
-
-### 3. 运行项目
-```bash
-# 编译
-mvn clean compile
-
-# 运行
+# 3. 启动后端
+cd ZQ_plat
 mvn spring-boot:run
 
-# 访问 Swagger UI
-http://localhost:8081/api/swagger-ui.html
+# 4. 启动前端
+cd front_ZQ/intelliengine-frontend
+npm install && npm run dev
 ```
 
-## API接口
+访问：
+- 前端：http://localhost:5173
+- Swagger：http://localhost:8081/api/swagger-ui.html
+- MinIO 控制台：http://localhost:9001
 
-| 模块 | 接口前缀 | 主要接口 |
-|------|---------|---------|
-| 用户 | `/api/v1/users` | 注册、登录、修改用户信息 |
-| 项目 | `/api/v1/projects` | 创建、查询、更新、删除项目 |
-| 资产 | `/api/v1/assets` | 上传、版本管理、查询 |
-| 审批 | `/api/v1/reviews` | 创建批注、查询评论 |
-| 市场 | `/api/v1/market` | 模板列表、下单 |
+## API 概览
 
-## 数据库表结构
+| 模块 | 前缀 | 主要端点 |
+|------|------|---------|
+| 用户 | `/api/v1/users` | register, login, profile, update |
+| 项目 | `/api/v1/projects` | CRUD, join/{groupId}, members |
+| 资产 | `/api/v1/assets` | upload, versions, linkToProject, diff |
+| 评审 | `/api/v1/reviews` | comments, replies, status |
+| 市场 | `/api/v1/market` | templates, orders, favorites |
+| Agent | `/api/v1/agent` | ai-videos, frames, tasks, reports, prompts |
+| 健康 | `/api/health` | status, cache/stats, cache/hot-keys |
 
-主要表：
-- `user_account` - 用户账户
-- `project_info` - 项目信息
-- `project_member` - 项目成员
-- `asset_info` - 资产信息
-- `asset_version` - 资产版本
-- `review_comment` - 审批评论
-- `review_reply` - 评论回复
-- `market_template` - 市场模板
-- `market_order` - 订单信息
+## 数据库表（15张）
 
-## 开发规范
+| 模块 | 表名 |
+|------|------|
+| 用户 | `user_account` |
+| 项目 | `project_info`, `project_member` |
+| 资产 | `asset_info`, `asset_version` |
+| 评审 | `review_comment`, `review_reply` |
+| 市场 | `market_template`, `market_order`, `market_order_item`, `market_favorite` |
+| Agent | `prompt_library`, `asset_ai_video`, `video_frame`, `agent_report`, `agent_report_template`, `agent_data_task`, `agent_data_record` |
+| 通知 | `notification` |
 
-- 使用COLA分层架构
-- 所有代码需有详细中文注释
-- Mapper层使用MyBatis注解SQL
-- Controller层使用Swagger注解
-- JWT Token认证保护API
-
-## 单元测试
+## 测试
 
 ```bash
-# 运行所有测试
 mvn test
-
-# 查看测试报告
-target/surefire-reports/
+# 73 个单元测试，覆盖 user/asset/market/agent/common 模块
 ```
 
-测试覆盖：
-- **JwtUtilTest** - JWT工具类测试（5个用例）
-- **UserAppServiceTest** - 用户服务测试（2个用例）
-- **ProjectAppServiceTest** - 项目服务测试（2个用例）
+## 版本
 
-## GitHub仓库
-
-https://github.com/navis2024/intelliengine-backend
-
-## 版本历史
-
-- `v1.1.0` - 添加JWT认证、单元测试、Docker部署
-- `v1.0.0` - 初始版本，完成5个核心模块
+- `v1.2.0` — Agent 模块、Redis 深度集成、LLM 接入、RabbitMQ 异步、数据可见性
+- `v1.1.0` — JWT 认证、Docker 部署
+- `v1.0.0` — 初始版本，5 个核心模块
