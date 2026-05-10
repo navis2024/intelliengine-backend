@@ -39,7 +39,12 @@ public class OpenAiEmbeddingService {
     public void init() {
         if (llmConfig.getApiKey() == null || llmConfig.getApiKey().isBlank()
                 || llmConfig.getApiKey().startsWith("sk-your")) {
-            log.warn("LLM API key not configured, OpenAI Embedding disabled — falling back to keyword vectors");
+            log.warn("LLM API key not configured, OpenAI Embedding disabled");
+            return;
+        }
+        // 非OpenAI provider不支持text-embedding-3-small，跳过
+        if (!"openai".equalsIgnoreCase(llmConfig.getProvider())) {
+            log.info("Provider is '{}', Embedding uses keyword fallback (only OpenAI supports text-embedding-3-small)", llmConfig.getProvider());
             return;
         }
         this.embeddingModel = OpenAiEmbeddingModel.builder()

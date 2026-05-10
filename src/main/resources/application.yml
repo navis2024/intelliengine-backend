@@ -65,24 +65,24 @@ minio:
   secret-key: ${MINIO_SECRET_KEY:IntelliEngine@2025}
   bucket: jimeng
 
-# LLM配置 (OpenAI兼容接口)
+# LLM配置 (接入Kimi/Moonshot — OpenAI兼容接口)
 llm:
-  enabled: false
-  provider: openai
-  api-key: ${LLM_API_KEY:sk-your-api-key-here}
-  base-url: https://api.openai.com
-  model: gpt-4o-mini
+  enabled: true
+  provider: kimi
+  api-key: ${LLM_API_KEY:sk-zgVvhNHyJpEhCclHxQ8VLKeHrW6OP3k69Ypc6GaP7syFWHXt}
+  base-url: https://api.moonshot.cn
+  model: kimi-k2.6
   temperature: 0.7
-  max-tokens: 512
+  max-tokens: 1024
 
 # LangChain4j配置 (Agent增强 — 支持ChatMemory + Function Calling)
 langchain4j:
-  enabled: false
-  api-key: ${LANGCHAIN4J_API_KEY:${LLM_API_KEY:sk-your-api-key-here}}
-  base-url: https://api.openai.com
-  model-name: gpt-4o-mini
+  enabled: true
+  api-key: ${LANGCHAIN4J_API_KEY:sk-zgVvhNHyJpEhCclHxQ8VLKeHrW6OP3k69Ypc6GaP7syFWHXt}
+  base-url: https://api.moonshot.cn
+  model-name: kimi-k2.6
   temperature: 0.7
-  max-tokens: 512
+  max-tokens: 1024
   max-memory-messages: 10
 
 # RAG语义检索配置

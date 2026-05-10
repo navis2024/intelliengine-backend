@@ -17,7 +17,7 @@ import org.springframework.context.annotation.Configuration;
  * @since 2024
  */
 @Configuration
-@MapperScan("com.aigc.intelliengine")
+@MapperScan(value = "com.aigc.intelliengine", annotationClass = org.apache.ibatis.annotations.Mapper.class)
 public class MybatisPlusConfig {
     // MyBatis Plus配置在application.yml中
 }

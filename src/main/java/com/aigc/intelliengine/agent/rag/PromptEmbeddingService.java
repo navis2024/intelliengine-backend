@@ -3,7 +3,6 @@ package com.aigc.intelliengine.agent.rag;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -19,27 +18,29 @@ import java.util.regex.Pattern;
  */
 @Slf4j
 @Service
-@ConditionalOnProperty(name = "llm.enabled", havingValue = "false", matchIfMissing = true)
 public class PromptEmbeddingService {
 
     @Value("${rag.min-keyword-length:2}")
     private int minKeywordLength;
 
     private static final Pattern TOKEN_PATTERN = Pattern.compile("[\\p{Punct}\\s]+");
-    private static final Set<String> STOP_WORDS = Set.of(
-            "the", "a", "an", "is", "are", "was", "were", "be", "been", "being",
-            "have", "has", "had", "do", "does", "did", "will", "would", "could",
-            "should", "may", "might", "can", "shall", "to", "of", "in", "for",
-            "on", "with", "at", "by", "from", "as", "into", "through", "during",
-            "before", "after", "above", "below", "between", "under", "again",
-            "further", "then", "once", "here", "there", "when", "where", "why",
-            "how", "all", "both", "each", "few", "more", "most", "other", "some",
-            "such", "no", "nor", "not", "only", "own", "same", "so", "than",
-            "too", "very", "just", "that", "this", "it", "its", "and", "but",
-            "or", "if", "because", "about", "up", "out", "also", "any", "which",
-            "的", "是", "了", "在", "和", "也", "就", "都", "而", "及",
-            "与", "着", "或", "一", "个", "为", "要", "并", "以", "及"
-    );
+    private static final Set<String> STOP_WORDS = new HashSet<>();
+
+    static {
+        String[] words = {
+            "the","a","an","is","are","was","were","be","been","being",
+            "have","has","had","do","does","did","will","would","could",
+            "should","may","might","can","shall","to","of","in","for",
+            "on","with","at","by","from","as","into","through","during",
+            "before","after","above","below","between","under","again",
+            "further","then","once","here","there","when","where","why",
+            "how","all","both","each","few","more","most","other","some",
+            "such","no","nor","not","only","own","same","so","than",
+            "too","very","just","that","this","it","its","and","but",
+            "or","if","because","about","up","out","also","any","which"
+        };
+        for (String w : words) STOP_WORDS.add(w);
+    }
 
     // 全局词表：term → index
     private final Map<String, Integer> vocabulary = new ConcurrentHashMap<>();
