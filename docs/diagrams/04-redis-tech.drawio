@@ -1,0 +1,135 @@
+<mxfile host="app.diagrams.net" modified="2026-05-10T00:00:00.000Z" agent="IntelliEngine" version="21.0.0">
+  <diagram name="Redis技术栈" id="redis-tech">
+    <mxGraphModel dx="1400" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="900">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="title" value="&lt;h2&gt;Redis 5种深度应用 — 完整技术实现&lt;/h2&gt;" style="text;html=1;fontColor=#1a237e;align=center;" vertex="1" parent="1">
+          <mxGeometry x="450" y="10" width="500" height="35" as="geometry"/>
+
+        <!-- ===== 1. 分布式锁 ===== -->
+        <mxCell id="lock-bg" value="" style="rounded=1;fillColor=#e8eaf6;strokeColor=#283593;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="20" y="60" width="510" height="370" as="geometry"/>
+        </mxCell>
+        <mxCell id="lock-title" value="&lt;b&gt;1. 分布式锁&lt;/b&gt; — DistributedLockService" style="text;html=1;fontSize=14;fontStyle=1;fontColor=#283593;" vertex="1" parent="1">
+          <mxGeometry x="120" y="68" width="310" height="25" as="geometry"/>
+        </mxCell>
+        <mxCell id="lock-flow1" value="&lt;b&gt;tryLock(key, timeout)&lt;/b&gt;" style="rounded=1;fillColor=#c5cae9;strokeColor=#3949ab;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="40" y="105" width="180" height="35" as="geometry"/>
+        </mxCell>
+        <mxCell id="lock-flow2" value="生成随机UUID" style="rounded=1;fillColor=#ffffff;strokeColor=#3949ab;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="260" y="105" width="110" height="35" as="geometry"/>
+        </mxCell>
+        <mxCell id="lock-flow3" value="SET lock_key UUID&lt;br&gt;NX PX timeout" style="rounded=1;fillColor=#ffffff;strokeColor=#3949ab;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="400" y="95" width="120" height="45" as="geometry"/>
+        </mxCell>
+        <mxCell id="lock-lua" value="&lt;b&gt;Lua脚本原子释放:&lt;/b&gt;&lt;br&gt;if redis.call('get',KEYS[1])==ARGV[1]&lt;br&gt;  then return redis.call('del',KEYS[1])&lt;br&gt;else return 0 end" style="rounded=1;fillColor=#e8eaf6;strokeColor=#1a237e;strokeWidth=2;fontSize=10;fontFamily=Courier New;align=left;spacingLeft=8;" vertex="1" parent="1">
+          <mxGeometry x="40" y="170" width="460" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="lock-uuid" value="&lt;b&gt;UUID持有者校验:&lt;/b&gt;&lt;br&gt;ThreadLocal存储锁持有者UUID&lt;br&gt;解锁时比对 — 防止A删B的锁" style="rounded=1;fillColor=#fff3e0;strokeColor=#e65100;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="40" y="255" width="460" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="lock-why" value="&lt;b&gt;为什么不用 SETNX 直接删?&lt;/b&gt;&lt;br&gt;竞态条件: A的锁过期 → B获取锁 → A调用unlock → 删掉B的锁&lt;br&gt;UUID校验确保"谁加锁谁解锁"" style="rounded=1;fillColor=#ffebee;strokeColor=#c62828;fontSize=9;align=left;spacingLeft=5;" vertex="1" parent="1">
+          <mxGeometry x="40" y="320" width="460" height="45" as="geometry"/>
+        </mxCell>
+        <mxCell id="lock-scene" value="&lt;b&gt;应用场景:&lt;/b&gt; 版本更新、库存操作" style="text;html=1;fontSize=10;fontColor=#283593;fontStyle=2;" vertex="1" parent="1">
+          <mxGeometry x="40" y="375" width="250" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- ===== 2. 多级缓存 ===== -->
+        <mxCell id="cache-bg" value="" style="rounded=1;fillColor=#e8f5e9;strokeColor=#2e7d32;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="550" y="60" width="510" height="370" as="geometry"/>
+        </mxCell>
+        <mxCell id="cache-title" value="&lt;b&gt;2. 多级缓存 + 延迟双删&lt;/b&gt; — MultiLevelCacheService" style="text;html=1;fontSize=14;fontStyle=1;fontColor=#2e7d32;" vertex="1" parent="1">
+          <mxGeometry x="600" y="68" width="400" height="25" as="geometry"/>
+        </mxCell>
+        <mxCell id="cache-l1" value="&lt;b&gt;L1: Caffeine&lt;/b&gt;&lt;br&gt;本地JVM缓存&lt;br&gt;10K / 5min过期" style="rounded=1;fillColor=#c8e6c9;strokeColor=#43a047;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="570" y="105" width="140" height="55" as="geometry"/>
+        </mxCell>
+        <mxCell id="cache-l2" value="&lt;b&gt;L2: Redis&lt;/b&gt;&lt;br&gt;分布式缓存&lt;br&gt;30min过期" style="rounded=1;fillColor=#c8e6c9;strokeColor=#43a047;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="750" y="105" width="130" height="55" as="geometry"/>
+        </mxCell>
+        <mxCell id="cache-flow" value="&lt;b&gt;getOrLoad流程:&lt;/b&gt;&lt;br&gt;1. 查L1 → 命中返回&lt;br&gt;2. 查L2 → 命中回写L1&lt;br&gt;3. 获取互斥锁(防击穿)&lt;br&gt;4. 执行loader → 写L1+L2&lt;br&gt;5. null值缓存2min(防穿透)" style="rounded=1;fillColor=#ffffff;strokeColor=#43a047;fontSize=10;align=left;spacingLeft=5;" vertex="1" parent="1">
+          <mxGeometry x="570" y="180" width="340" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="cache-double" value="&lt;b&gt;延迟双删(delayedDoubleDelete):&lt;/b&gt;&lt;br&gt;1. evictByPattern → 立即删除&lt;br&gt;2. 等待800ms&lt;br&gt;3. evictByPattern → 再次删除&lt;br&gt;防止并发脏读写回旧数据" style="rounded=1;fillColor=#fff3e0;strokeColor=#e65100;fontSize=10;align=left;spacingLeft=5;" vertex="1" parent="1">
+          <mxGeometry x="570" y="285" width="340" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="cache-scene" value="&lt;b&gt;应用:&lt;/b&gt; MarketService(模板)/UserAccountService(用户)" style="text;html=1;fontSize=10;fontColor=#2e7d32;fontStyle=2;" vertex="1" parent="1">
+          <mxGeometry x="570" y="370" width="350" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- ===== 3. Session 共享 ===== -->
+        <mxCell id="session-bg" value="" style="rounded=1;fillColor=#fff3e0;strokeColor=#e65100;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="20" y="450" width="510" height="200" as="geometry"/>
+        </mxCell>
+        <mxCell id="session-title" value="&lt;b&gt;3. Session共享&lt;/b&gt; — ThreadLocal + Redis" style="text;html=1;fontSize=14;fontStyle=1;fontColor=#e65100;" vertex="1" parent="1">
+          <mxGeometry x="120" y="458" width="300" height="25" as="geometry"/>
+        </mxCell>
+        <mxCell id="session-login" value="&lt;b&gt;登录时&lt;/b&gt;&lt;br&gt;Redis写session:user:{id}&lt;br&gt;TTL 7天" style="rounded=1;fillColor=#ffe0b2;strokeColor=#ef6c00;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="40" y="500" width="150" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="session-filter" value="&lt;b&gt;JwtAuthFilter&lt;/b&gt;&lt;br&gt;验证JWT → 查Redis Session&lt;br&gt;→ ThreadLocal.set()&lt;br&gt;→ finally clear()" style="rounded=1;fillColor=#ffe0b2;strokeColor=#ef6c00;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="220" y="495" width="170" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="session-use" value="&lt;b&gt;Controller层&lt;/b&gt;&lt;br&gt;UserContextHolder&lt;br&gt;.getCurrentUserId()" style="rounded=1;fillColor=#ffffff;strokeColor=#ef6c00;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="420" y="500" width="100" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="session-why" value="&lt;b&gt;优势:&lt;/b&gt; 7个Controller解耦HttpServletRequest, 多实例无状态" style="text;html=1;fontSize=10;fontColor=#e65100;fontStyle=2;" vertex="1" parent="1">
+          <mxGeometry x="40" y="570" width="400" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- ===== 4. 限流器 ===== -->
+        <mxCell id="rate-bg" value="" style="rounded=1;fillColor=#fce4ec;strokeColor=#c62828;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="550" y="450" width="250" height="200" as="geometry"/>
+        </mxCell>
+        <mxCell id="rate-title" value="&lt;b&gt;4. 限流器&lt;/b&gt; — RateLimiterService" style="text;html=1;fontSize=14;fontStyle=1;fontColor=#c62828;" vertex="1" parent="1">
+          <mxGeometry x="580" y="458" width="200" height="25" as="geometry"/>
+        </mxCell>
+        <mxCell id="rate-flow" value="&lt;b&gt;tryAcquire(key, limit, windowSec)&lt;/b&gt;&lt;br&gt;滑动窗口计数&lt;br&gt;超过阈值返回false" style="rounded=1;fillColor=#ffcdd2;strokeColor=#d32f2f;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="570" y="500" width="210" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="rate-scene" value="&lt;b&gt;应用:&lt;/b&gt;&lt;br&gt;登录: 10次/60s&lt;br&gt;注册: 5次/60s" style="rounded=1;fillColor=#ffffff;strokeColor=#d32f2f;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="570" y="570" width="210" height="45" as="geometry"/>
+        </mxCell>
+
+        <!-- ===== 5. Token黑名单 + 布隆 ===== -->
+        <mxCell id="bl-bg" value="" style="rounded=1;fillColor=#f3e5f5;strokeColor=#6a1b9a;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="820" y="450" width="240" height="200" as="geometry"/>
+        </mxCell>
+        <mxCell id="bl-title" value="&lt;b&gt;5. Token黑名单 + 布隆&lt;/b&gt;" style="text;html=1;fontSize=14;fontStyle=1;fontColor=#6a1b9a;" vertex="1" parent="1">
+          <mxGeometry x="835" y="458" width="210" height="25" as="geometry"/>
+        </mxCell>
+        <mxCell id="bl-token" value="&lt;b&gt;TokenBlacklistService&lt;/b&gt;&lt;br&gt;登出→Redis SET&lt;br&gt;TTL=JWT剩余时间" style="rounded=1;fillColor=#e1bee7;strokeColor=#8e24aa;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="835" y="500" width="210" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="bl-bloom" value="&lt;b&gt;RedisBloomFilter&lt;/b&gt;&lt;br&gt;Bitmap布隆过滤器&lt;br&gt;防重复购买" style="rounded=1;fillColor=#e1bee7;strokeColor=#8e24aa;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="835" y="570" width="210" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- ===== 底部总结 ===== -->
+        <mxCell id="summary-bg" value="" style="rounded=1;fillColor=#eceff1;strokeColor=#37474f;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="20" y="670" width="1040" height="200" as="geometry"/>
+        </mxCell>
+        <mxCell id="summary-title" value="&lt;b&gt;技术面试要点总结&lt;/b&gt;" style="text;html=1;fontSize=14;fontStyle=1;fontColor=#37474f;" vertex="1" parent="1">
+          <mxGeometry x="400" y="680" width="200" height="25" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="sum1" value="&lt;b&gt;分布式锁:&lt;/b&gt; Lua为什么能保证原子性?&lt;br&gt;(Redis单线程执行Lua, 中间不会被其他命令插队)&lt;br&gt;UUID校验解决什么问题? (锁持有者误删)" style="rounded=1;fillColor=#ffffff;strokeColor=#546e7a;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="1">
+          <mxGeometry x="40" y="715" width="480" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="sum2" value="&lt;b&gt;缓存策略:&lt;/b&gt; Caffeine L1 + Redis L2命中率计算?&lt;br&gt;穿透(空值缓存)/击穿(互斥锁)/雪崩(随机TTL)三种防御&lt;br&gt;延迟双删800ms窗口设计理由?" style="rounded=1;fillColor=#ffffff;strokeColor=#546e7a;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="1">
+          <mxGeometry x="40" y="775" width="480" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="sum3" value="&lt;b&gt;Session:&lt;/b&gt; ThreadLocal原理(WeakReference)&lt;br&gt;为什么finally要clear()? (内存泄漏风险)&lt;br&gt;多实例Session共享方案对比 (Redis vs JWT无状态)" style="rounded=1;fillColor=#ffffff;strokeColor=#546e7a;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="1">
+          <mxGeometry x="540" y="715" width="500" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="sum4" value="&lt;b&gt;限流+布隆:&lt;/b&gt; 滑动窗口 vs 令牌桶 vs 漏桶 选型理由?&lt;br&gt;布隆过滤器的误判率和位数组大小计算公式&lt;br&gt;(m = -n*ln(p) / (ln2)^2, k = (m/n)*ln2)" style="rounded=1;fillColor=#ffffff;strokeColor=#546e7a;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="1">
+          <mxGeometry x="540" y="775" width="500" height="50" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

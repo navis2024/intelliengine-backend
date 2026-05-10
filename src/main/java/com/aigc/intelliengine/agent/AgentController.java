@@ -10,6 +10,10 @@ import com.aigc.intelliengine.agent.model.entity.AssetAiVideo;
 import com.aigc.intelliengine.agent.model.entity.PromptLibrary;
 import com.aigc.intelliengine.agent.model.entity.VideoFrame;
 import com.aigc.intelliengine.agent.model.vo.*;
+import com.aigc.intelliengine.agent.collaboration.AgentBus;
+import com.aigc.intelliengine.agent.collaboration.AgentMessage;
+import com.aigc.intelliengine.agent.collaboration.WorkflowEngine;
+import com.aigc.intelliengine.agent.tools.AgentTool;
 import com.aigc.intelliengine.common.model.ApiResponse;
 import com.aigc.intelliengine.common.security.UserContextHolder;
 import io.swagger.v3.oas.annotations.Operation;
@@ -17,7 +21,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -31,6 +38,10 @@ public class AgentController {
     private final AiVideoService aiVideoService;
     private final AgentTaskService agentTaskService;
     private final AgentReportService agentReportService;
+    private final AgentOrchestrator orchestrator;
+    private final List<AgentTool> tools;
+    private final WorkflowEngine workflowEngine;
+    private final AgentBus agentBus;
 
     @PostMapping("/frames/{frameId}/analyze")
     @Operation(summary = "分析帧提示词")
@@ -90,6 +101,21 @@ public class AgentController {
     @DeleteMapping("/prompts/{id}")
     @Operation(summary = "删除Prompt")
     public ApiResponse<Void> deletePrompt(@PathVariable Long id) { promptLibraryService.deleteById(id); return ApiResponse.success(null); }
+
+    @GetMapping("/prompts/search")
+    @Operation(summary = "RAG语义检索Prompt — 基于向量相似度，支持自然语言查询")
+    public ApiResponse<List<SemanticPromptVO>> semanticSearchPrompts(
+            @RequestParam String q,
+            @RequestParam(defaultValue = "10") int topK) {
+        return ApiResponse.success(promptLibraryService.semanticSearch(q, topK));
+    }
+
+    @PostMapping("/prompts/reindex")
+    @Operation(summary = "重建全量RAG索引")
+    public ApiResponse<Map<String, Object>> reindexPrompts() {
+        int count = promptLibraryService.reindexAll();
+        return ApiResponse.success(Map.of("indexed", count, "status", "ok"));
+    }
 
     @GetMapping("/videos/asset/{assetId}")
     @Operation(summary = "获取资产关联的AI视频元数据")
@@ -244,5 +270,39 @@ public class AgentController {
     @Operation(summary = "获取报告模板列表")
     public ApiResponse<List<AgentReportTemplate>> listTemplates() {
         return ApiResponse.success(agentReportService.listTemplates());
+    }
+
+    // ==================== Agent Orchestrator ====================
+
+    @GetMapping("/tools")
+    @Operation(summary = "获取Agent可用工具列表")
+    public ApiResponse<List<Map<String, Object>>> listTools() {
+        return ApiResponse.success(tools.stream().map(t -> Map.<String, Object>of(
+                "name", t.name(),
+                "description", t.description(),
+                "inputSchema", t.inputSchema()
+        )).collect(Collectors.toList()));
+    }
+
+    @PostMapping(value = "/execute", produces = "text/event-stream;charset=UTF-8")
+    @Operation(summary = "SSE流式执行Agent任务 — ReAct模式，实时推送思考/行动/观察步骤")
+    public SseEmitter executeAgent(@RequestParam String task) {
+        return orchestrator.execute(task, UserContextHolder.getCurrentUserId());
+    }
+
+    @PostMapping(value = "/workflow", produces = "text/event-stream;charset=UTF-8")
+    @Operation(summary = "SSE多Agent协同工作流 — Supervisor规划→Workers执行→Auditor审查→汇总")
+    public SseEmitter launchWorkflow(@RequestParam String task) {
+        return workflowEngine.launch(task);
+    }
+
+    @GetMapping("/inbox")
+    @Operation(summary = "查看Agent通信消息")
+    public ApiResponse<Map<String, Object>> viewInbox(@RequestParam(defaultValue = "SUPERVISOR") String agent) {
+        return ApiResponse.success(Map.of(
+                "agent", agent,
+                "inbox", agentBus.pollInbox(agent),
+                "history", agentBus.getHistory(agent)
+        ));
     }
 }

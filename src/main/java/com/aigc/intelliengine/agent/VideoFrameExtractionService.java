@@ -26,6 +26,9 @@ public class VideoFrameExtractionService {
     @Value("${minio.bucket}")
     private String bucket;
 
+    @Value("${ffmpeg.path:}")
+    private String configuredFfmpegPath;
+
     private static final int MAX_FRAMES = 20;
     private static final int THUMBNAIL_WIDTH = 320;
 
@@ -192,26 +195,45 @@ public class VideoFrameExtractionService {
 
     private String findFfmpeg() {
         if (ffmpegPath != null) return ffmpegPath;
+
+        // 1. Check configured path from application.yml
+        if (configuredFfmpegPath != null && !configuredFfmpegPath.isBlank()) {
+            if (Files.exists(Path.of(configuredFfmpegPath))) {
+                ffmpegPath = configuredFfmpegPath;
+                log.info("FFmpeg found via config: {}", ffmpegPath);
+                return ffmpegPath;
+            }
+            log.warn("Configured ffmpeg.path not found: {}", configuredFfmpegPath);
+        }
+
+        // 2. Check PATH
         for (String name : new String[]{"ffmpeg", "ffmpeg.exe"}) {
             try {
                 Process p = new ProcessBuilder(name, "-version").redirectErrorStream(true).start();
                 if (p.waitFor(3, TimeUnit.SECONDS) && p.exitValue() == 0) {
                     ffmpegPath = name;
+                    log.info("FFmpeg found in PATH: {}", name);
                     return name;
                 }
             } catch (Exception ignored) {}
         }
-        // Check common paths
+
+        // 3. Check common installation paths
         for (String path : new String[]{
                 "C:\\ffmpeg\\bin\\ffmpeg.exe",
+                "E:\\ffmpeg\\ffmpeg-8.1.1-essentials_build\\bin\\ffmpeg.exe",
+                "E:\\ffmepg\\ffmpeg-8.1.1-essentials_build\\bin\\ffmpeg.exe",
                 "/usr/bin/ffmpeg",
                 "/usr/local/bin/ffmpeg"
         }) {
             if (Files.exists(Path.of(path))) {
                 ffmpegPath = path;
+                log.info("FFmpeg found at: {}", path);
                 return path;
             }
         }
+
+        log.info("FFmpeg not found — will use placeholder frames");
         return null;
     }
 

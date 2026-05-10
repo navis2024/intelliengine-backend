@@ -1,0 +1,183 @@
+<mxfile host="app.diagrams.net" modified="2026-05-10T00:00:00.000Z" agent="IntelliEngine" version="21.0.0">
+  <diagram name="Agent模块架构" id="agent-arch">
+    <mxGraphModel dx="1400" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1100">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- 标题 -->
+        <mxCell id="title" value="&lt;h2&gt;Agent 模块 — 完整架构与数据流&lt;/h2&gt;" style="text;html=1;fontColor=#1a237e;align=center;" vertex="1" parent="1">
+          <mxGeometry x="400" y="10" width="600" height="35" as="geometry"/>
+        </mxCell>
+
+        <!-- ===== 入口层 ===== -->
+        <mxCell id="entry-layer" value="入口层" style="swimlane;startSize=25;fillColor=#e8eaf6;strokeColor=#283593;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="55" width="1520" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="entry-rest" value="&lt;b&gt;AgentController&lt;/b&gt;&lt;br&gt;REST API&lt;br&gt;/v1/agent/*" style="rounded=1;fillColor=#ffffff;strokeColor=#3949ab;fontSize=10;" vertex="1" parent="entry-layer">
+          <mxGeometry x="40" y="35" width="150" height="48" as="geometry"/>
+        </mxCell>
+        <mxCell id="entry-sse" value="&lt;b&gt;SSE流式端点&lt;/b&gt;&lt;br&gt;execute(SSE)&lt;br&gt;workflow(SSE)" style="rounded=1;fillColor=#c5cae9;strokeColor=#3949ab;fontSize=10;fontStyle=1;" vertex="1" parent="entry-layer">
+          <mxGeometry x="230" y="35" width="150" height="48" as="geometry"/>
+        </mxCell>
+        <mxCell id="entry-mq" value="&lt;b&gt;VideoFrameWorker&lt;/b&gt;&lt;br&gt;@RabbitListener&lt;br&gt;q.video.extract" style="rounded=1;fillColor=#c5cae9;strokeColor=#3949ab;fontSize=10;fontStyle=1;" vertex="1" parent="entry-layer">
+          <mxGeometry x="420" y="35" width="160" height="48" as="geometry"/>
+        </mxCell>
+        <mxCell id="entry-rag" value="&lt;b&gt;RAG检索端点&lt;/b&gt;&lt;br&gt;prompts/search&lt;br&gt;prompts/reindex" style="rounded=1;fillColor=#e8eaf6;strokeColor=#3949ab;fontSize=10;" vertex="1" parent="entry-layer">
+          <mxGeometry x="620" y="35" width="150" height="48" as="geometry"/>
+        </mxCell>
+
+        <!-- ===== LLM策略层 ===== -->
+        <mxCell id="strategy-layer" value="LLM 策略层 — 三级可切换" style="swimlane;startSize=25;fillColor=#e8f5e9;strokeColor=#2e7d32;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="165" width="1520" height="130" as="geometry"/>
+        </mxCell>
+        <mxCell id="srv-analysis" value="&lt;b&gt;PromptAnalysisService&lt;/b&gt;&lt;br&gt;策略选择器" style="rounded=1;fillColor=#ffffff;strokeColor=#43a047;fontSize=10;" vertex="1" parent="strategy-layer">
+          <mxGeometry x="40" y="35" width="160" height="45" as="geometry"/>
+        </mxCell>
+        <mxCell id="st-lc4j" value="&lt;b&gt;LangChain4jStrategy ★&lt;/b&gt;&lt;br&gt;ChatMemory(10轮)&lt;br&gt;@Tool函数调用&lt;br&gt;AiServices代理" style="rounded=1;fillColor=#c8e6c9;strokeColor=#2e7d32;fontSize=10;fontStyle=1;" vertex="1" parent="strategy-layer">
+          <mxGeometry x="260" y="30" width="190" height="85" as="geometry"/>
+        </mxCell>
+        <mxCell id="st-openai" value="&lt;b&gt;OpenAIStrategy&lt;/b&gt;&lt;br&gt;RestTemplate&lt;br&gt;Chat Completions&lt;br&gt;JSON结构化输出" style="rounded=1;fillColor=#ffffff;strokeColor=#43a047;fontSize=10;" vertex="1" parent="strategy-layer">
+          <mxGeometry x="500" y="30" width="175" height="85" as="geometry"/>
+        </mxCell>
+        <mxCell id="st-mock" value="&lt;b&gt;MockStrategy&lt;/b&gt;&lt;br&gt;本地规则引擎&lt;br&gt;关键词匹配&lt;br&gt;兜底保障" style="rounded=1;fillColor=#ffffff;strokeColor=#43a047;fontSize=10;" vertex="1" parent="strategy-layer">
+          <mxGeometry x="720" y="30" width="160" height="85" as="geometry"/>
+        </mxCell>
+        <mxCell id="st-priority" value="优先级&lt;br&gt;langchain4j.enabled →&lt;br&gt;llm.enabled →&lt;br&gt;Mock 兜底" style="text;html=1;fontSize=10;fontColor=#2e7d32;align=left;" vertex="1" parent="strategy-layer">
+          <mxGeometry x="920" y="40" width="160" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="st-config" value="&lt;b&gt;LlmConfig&lt;/b&gt;&lt;br&gt;@ConfigurationProperties("llm")&lt;br&gt;apiKey/model/temperature" style="rounded=1;fillColor=#e8f5e9;strokeColor=#43a047;fontSize=9;" vertex="1" parent="strategy-layer">
+          <mxGeometry x="1120" y="30" width="180" height="85" as="geometry"/>
+        </mxCell>
+        <mxCell id="st-lc4j-config" value="&lt;b&gt;LangChain4jConfig&lt;/b&gt;&lt;br&gt;@ConfigurationProperties("langchain4j")&lt;br&gt;OpenAiChatModel + ChatMemory Bean" style="rounded=1;fillColor=#e8f5e9;strokeColor=#43a047;fontSize=9;" vertex="1" parent="strategy-layer">
+          <mxGeometry x="1330" y="30" width="175" height="85" as="geometry"/>
+        </mxCell>
+
+        <!-- ===== 核心服务层 ===== -->
+        <mxCell id="core-layer" value="核心服务层" style="swimlane;startSize=25;fillColor=#fff3e0;strokeColor=#e65100;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="315" width="1520" height="150" as="geometry"/>
+        </mxCell>
+        <mxCell id="core-prompt" value="&lt;b&gt;PromptLibraryService&lt;/b&gt;&lt;br&gt;CRUD / 使用统计" style="rounded=1;fillColor=#ffffff;strokeColor=#ef6c00;fontSize=10;" vertex="1" parent="core-layer">
+          <mxGeometry x="40" y="35" width="170" height="48" as="geometry"/>
+        </mxCell>
+        <mxCell id="core-video" value="&lt;b&gt;AiVideoService&lt;/b&gt;&lt;br&gt;AI视频CRUD / 发MQ抽帧" style="rounded=1;fillColor=#ffffff;strokeColor=#ef6c00;fontSize=10;" vertex="1" parent="core-layer">
+          <mxGeometry x="240" y="35" width="180" height="48" as="geometry"/>
+        </mxCell>
+        <mxCell id="core-frame" value="&lt;b&gt;VideoFrameExtractionService&lt;/b&gt;&lt;br&gt;FFmpeg I-frame提取&lt;br&gt;MinIO上传缩略图" style="rounded=1;fillColor=#ffffff;strokeColor=#ef6c00;fontSize=10;" vertex="1" parent="core-layer">
+          <mxGeometry x="450" y="35" width="190" height="48" as="geometry"/>
+        </mxCell>
+        <mxCell id="core-task" value="&lt;b&gt;AgentTaskService&lt;/b&gt;&lt;br&gt;数据采集任务&lt;br&gt;异常检测(quality&lt;0.7)" style="rounded=1;fillColor=#ffffff;strokeColor=#ef6c00;fontSize=10;" vertex="1" parent="core-layer">
+          <mxGeometry x="670" y="35" width="190" height="48" as="geometry"/>
+        </mxCell>
+        <mxCell id="core-report" value="&lt;b&gt;AgentReportService&lt;/b&gt;&lt;br&gt;统计报告生成&lt;br&gt;资产/异常率/TOP Prompt" style="rounded=1;fillColor=#ffffff;strokeColor=#ef6c00;fontSize=10;" vertex="1" parent="core-layer">
+          <mxGeometry x="890" y="35" width="190" height="48" as="geometry"/>
+        </mxCell>
+
+        <!-- RAG 服务 -->
+        <mxCell id="core-rag-label" value="&lt;b&gt;RAG 语义检索&lt;/b&gt;" style="text;html=1;fontSize=11;fontColor=#e65100;fontStyle=1;" vertex="1" parent="core-layer">
+          <mxGeometry x="40" y="100" width="120" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="core-rag-srv" value="&lt;b&gt;RagService&lt;/b&gt;&lt;br&gt;双模式自动切换&lt;br&gt;Prompt创建自动索引" style="rounded=1;fillColor=#ffe0b2;strokeColor=#ef6c00;fontSize=10;" vertex="1" parent="core-layer">
+          <mxGeometry x="170" y="90" width="180" height="48" as="geometry"/>
+        </mxCell>
+        <mxCell id="core-rag-local" value="&lt;b&gt;PromptEmbeddingService&lt;/b&gt;&lt;br&gt;本地关键词频率向量&lt;br&gt;余弦相似度" style="rounded=1;fillColor=#ffffff;strokeColor=#ef6c00;fontSize=10;" vertex="1" parent="core-layer">
+          <mxGeometry x="380" y="90" width="180" height="48" as="geometry"/>
+        </mxCell>
+        <mxCell id="core-rag-openai" value="&lt;b&gt;OpenAiEmbeddingService&lt;/b&gt;&lt;br&gt;text-embedding-3-small&lt;br&gt;InMemoryEmbeddingStore" style="rounded=1;fillColor=#ffffff;strokeColor=#ef6c00;fontSize=10;" vertex="1" parent="core-layer">
+          <mxGeometry x="590" y="90" width="200" height="48" as="geometry"/>
+        </mxCell>
+
+        <!-- ReAct & Multi-Agent -->
+        <mxCell id="core-agent-label" value="&lt;b&gt;Agent 自主执行&lt;/b&gt;" style="text;html=1;fontSize=11;fontColor=#e65100;fontStyle=1;" vertex="1" parent="core-layer">
+          <mxGeometry x="840" y="100" width="120" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="core-orch" value="&lt;b&gt;AgentOrchestrator&lt;/b&gt;&lt;br&gt;Thought→Action→Obs循环" style="rounded=1;fillColor=#ffe0b2;strokeColor=#ef6c00;fontSize=10;" vertex="1" parent="core-layer">
+          <mxGeometry x="970" y="90" width="160" height="48" as="geometry"/>
+        </mxCell>
+        <mxCell id="core-super" value="&lt;b&gt;SupervisorAgent&lt;/b&gt;&lt;br&gt;任务规划+分派" style="rounded=1;fillColor=#ffffff;strokeColor=#ef6c00;fontSize=10;" vertex="1" parent="core-layer">
+          <mxGeometry x="1160" y="90" width="150" height="48" as="geometry"/>
+        </mxCell>
+        <mxCell id="core-worker" value="&lt;b&gt;WorkerAgent&lt;/b&gt;&lt;br&gt;监听→执行→回报" style="rounded=1;fillColor=#ffffff;strokeColor=#ef6c00;fontSize=10;" vertex="1" parent="core-layer">
+          <mxGeometry x="1340" y="90" width="150" height="48" as="geometry"/>
+        </mxCell>
+
+        <!-- ===== 工具层 (Function Calling) ===== -->
+        <mxCell id="tool-layer" value="工具层 — @Tool 函数调用" style="swimlane;startSize=25;fillColor=#f3e5f5;strokeColor=#6a1b9a;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="485" width="1520" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="tool-prompts" value="&lt;b&gt;search_prompts&lt;/b&gt;&lt;br&gt;语义搜索Prompt库" style="rounded=1;fillColor=#ffffff;strokeColor=#8e24aa;fontSize=10;" vertex="1" parent="tool-layer">
+          <mxGeometry x="40" y="35" width="170" height="48" as="geometry"/>
+        </mxCell>
+        <mxCell id="tool-analyze" value="&lt;b&gt;analyze_prompt&lt;/b&gt;&lt;br&gt;LLM分析+增强Prompt" style="rounded=1;fillColor=#ffffff;strokeColor=#8e24aa;fontSize=10;" vertex="1" parent="tool-layer">
+          <mxGeometry x="240" y="35" width="180" height="48" as="geometry"/>
+        </mxCell>
+        <mxCell id="tool-extract" value="&lt;b&gt;extract_frames&lt;/b&gt;&lt;br&gt;FFmpeg抽帧" style="rounded=1;fillColor=#ffffff;strokeColor=#8e24aa;fontSize=10;" vertex="1" parent="tool-layer">
+          <mxGeometry x="450" y="35" width="150" height="48" as="geometry"/>
+        </mxCell>
+        <mxCell id="tool-report" value="&lt;b&gt;generate_report&lt;/b&gt;&lt;br&gt;统计报告" style="rounded=1;fillColor=#ffffff;strokeColor=#8e24aa;fontSize=10;" vertex="1" parent="tool-layer">
+          <mxGeometry x="630" y="35" width="150" height="48" as="geometry"/>
+        </mxCell>
+        <mxCell id="tool-lc4j" value="&lt;b&gt;LangChain4jTools&lt;/b&gt;&lt;br&gt;queryAsset / listAssetsByType&lt;br&gt;queryProject / checkFfmpegStatus" style="rounded=1;fillColor=#e1bee7;strokeColor=#6a1b9a;fontSize=10;fontStyle=1;" vertex="1" parent="tool-layer">
+          <mxGeometry x="820" y="35" width="240" height="48" as="geometry"/>
+        </mxCell>
+
+        <!-- ===== 数据层 ===== -->
+        <mxCell id="data-layer" value="数据层" style="swimlane;startSize=25;fillColor=#eceff1;strokeColor=#37474f;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="595" width="1520" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="data-tables" value="&lt;b&gt;7张Agent表&lt;/b&gt;&lt;br&gt;prompt_library / asset_ai_video&lt;br&gt;video_frame / agent_report&lt;br&gt;agent_report_template / agent_data_task&lt;br&gt;agent_data_record" style="rounded=1;fillColor=#ffffff;strokeColor=#546e7a;fontSize=10;" vertex="1" parent="data-layer">
+          <mxGeometry x="40" y="30" width="320" height="55" as="geometry"/>
+        </mxCell>
+        <mxCell id="data-mappers" value="&lt;b&gt;8个Mapper&lt;/b&gt;&lt;br&gt;AiVideo / VideoFrame / PromptLibrary&lt;br&gt;AgentReport / AgentReportTemplate&lt;br&gt;AgentDataTask / AgentDataRecord" style="rounded=1;fillColor=#ffffff;strokeColor=#546e7a;fontSize=10;" vertex="1" parent="data-layer">
+          <mxGeometry x="390" y="30" width="320" height="55" as="geometry"/>
+        </mxCell>
+        <mxCell id="data-mq" value="&lt;b&gt;RabbitMQ&lt;/b&gt;&lt;br&gt;q.video.extract (持久化)&lt;br&gt;DLQ死信队列 (3次重试)" style="rounded=1;fillColor=#ffffff;strokeColor=#546e7a;fontSize=10;" vertex="1" parent="data-layer">
+          <mxGeometry x="740" y="30" width="220" height="55" as="geometry"/>
+        </mxCell>
+        <mxCell id="data-embedding" value="&lt;b&gt;EmbeddingStore&lt;/b&gt;&lt;br&gt;InMemory向量存储&lt;br&gt;LangChain4j管理" style="rounded=1;fillColor=#ffffff;strokeColor=#546e7a;fontSize=10;" vertex="1" parent="data-layer">
+          <mxGeometry x="990" y="30" width="200" height="55" as="geometry"/>
+        </mxCell>
+
+        <!-- ===== 关键流程箭头 ===== -->
+        <mxCell id="flow1" value="POST /v1/agent/videos" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#1b5e20;strokeWidth=2;" edge="1" parent="1" source="entry-rest" target="core-video">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="flow2" value="createAiVideo" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#ff6f00;strokeWidth=2;dashed=1;" edge="1" parent="1" source="core-video" target="data-mq">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="flow3" value="consume" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#ff6f00;strokeWidth=2;dashed=1;" edge="1" parent="1" source="entry-mq" target="core-frame">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="flow4" value="策略选择" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#2e7d32;strokeWidth=2;" edge="1" parent="1" source="srv-analysis" target="st-lc4j">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="flow5" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#2e7d32;strokeWidth=1;" edge="1" parent="1" source="srv-analysis" target="st-openai">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="flow6" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#2e7d32;strokeWidth=1;" edge="1" parent="1" source="srv-analysis" target="st-mock">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="flow7" value="SSE流式" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#6a1b9a;strokeWidth=2;" edge="1" parent="1" source="entry-sse" target="core-orch">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="flow8" value="语义搜索" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#4a148c;strokeWidth=1;" edge="1" parent="1" source="entry-rag" target="core-rag-srv">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- ReAct 循环标注 -->
+        <mxCell id="react-loop" value="&lt;b&gt;ReAct循环:&lt;/b&gt; Thought → Action → Observation → Thought → ... → FinalAnswer" style="rounded=1;fillColor=#fce4ec;strokeColor=#c62828;strokeWidth=2;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="700" width="700" height="35" as="geometry"/>
+        </mxCell>
+        <mxCell id="sse-note" value="&lt;b&gt;SSE输出格式:&lt;/b&gt;  data: {"type":"thought","content":"...","timestamp":...}&lt;br&gt;  data: {"type":"action","tool":"...","input":{...}}&lt;br&gt;  data: {"type":"observation","result":{...}}&lt;br&gt;  data: {"type":"final","summary":"..."}" style="rounded=1;fillColor=#e8eaf6;strokeColor=#283593;fontSize=10;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="40" y="745" width="700" height="65" as="geometry"/>
+        </mxCell>
+
+        <!-- 多Agent协同标注 -->
+        <mxCell id="multi-agent-note" value="&lt;b&gt;多Agent协同流程 (WorkflowEngine):&lt;/b&gt;&lt;br&gt;1. Supervisor 接收任务 → 2. 规划+匹配工具 → 3. 分派给Worker&lt;br&gt;4. Worker 异步执行 → 5. 通过AgentBus回报结果&lt;br&gt;6. Auditor 检查完整性 → 7. Supervisor 汇总输出" style="rounded=1;fillColor=#f3e5f5;strokeColor=#6a1b9a;fontSize=10;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="780" y="700" width="450" height="95" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

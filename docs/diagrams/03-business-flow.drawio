@@ -1,0 +1,215 @@
+<mxfile host="app.diagrams.net" modified="2026-05-10T00:00:00.000Z" agent="IntelliEngine" version="21.0.0">
+  <diagram name="核心业务流程" id="biz-flow">
+    <mxGraphModel dx="1400" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1200">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="title" value="&lt;h2&gt;核心业务流程 — 从注册到市场发布&lt;/h2&gt;" style="text;html=1;fontColor=#1a237e;align=center;" vertex="1" parent="1">
+          <mxGeometry x="400" y="10" width="600" height="35" as="geometry"/>
+
+        <!-- ================================================================ -->
+        <!-- 阶段1: 用户认证 -->
+        <!-- ================================================================ -->
+        <mxCell id="phase1-bg" value="" style="rounded=1;fillColor=#e3f2fd;strokeColor=#1565c0;strokeWidth=2;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="20" y="60" width="460" height="280" as="geometry"/>
+        </mxCell>
+        <mxCell id="p1-label" value="阶段1: 用户认证" style="text;html=1;fontSize=14;fontStyle=1;fontColor=#1565c0;" vertex="1" parent="1">
+          <mxGeometry x="140" y="65" width="180" height="25" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="p1-start" value="用户访问" style="ellipse;fillColor=#bbdefb;strokeColor=#1565c0;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="180" y="100" width="100" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="p1-register" value="&lt;b&gt;POST /register&lt;/b&gt;&lt;br&gt;BCrypt加密&lt;br&gt;RateLimiter防刷" style="rounded=1;fillColor=#ffffff;strokeColor=#1976d2;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="40" y="170" width="140" height="55" as="geometry"/>
+        </mxCell>
+        <mxCell id="p1-login" value="&lt;b&gt;POST /login&lt;/b&gt;&lt;br&gt;JWT生成(7天)&lt;br&gt;Redis Session写入" style="rounded=1;fillColor=#ffffff;strokeColor=#1976d2;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="200" y="170" width="140" height="55" as="geometry"/>
+        </mxCell>
+        <mxCell id="p1-filter" value="&lt;b&gt;JwtAuthFilter&lt;/b&gt;&lt;br&gt;验证Token&lt;br&gt;查Redis Session&lt;br&gt;写入ThreadLocal" style="rounded=1;fillColor=#ffffff;strokeColor=#1976d2;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="230" y="245" width="150" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="p1-session" value="&lt;b&gt;UserContextHolder&lt;/b&gt;&lt;br&gt;ThreadLocal&lt;br&gt;getCurrentUserId()" style="rounded=1;fillColor=#e3f2fd;strokeColor=#1976d2;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="400" y="245" width="70" height="55" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="arr-p1-1" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#1565c0;strokeWidth=2;" edge="1" parent="1" source="p1-start" target="p1-register">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arr-p1-2" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#1565c0;strokeWidth=2;" edge="1" parent="1" source="p1-start" target="p1-login">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arr-p1-3" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#1565c0;strokeWidth=2;" edge="1" parent="1" source="p1-login" target="p1-filter">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arr-p1-4" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#1565c0;strokeWidth=2;" edge="1" parent="1" source="p1-filter" target="p1-session">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- ================================================================ -->
+        <!-- 阶段2: 项目+资产管理 -->
+        <!-- ================================================================ -->
+        <mxCell id="phase2-bg" value="" style="rounded=1;fillColor=#e8f5e9;strokeColor=#2e7d32;strokeWidth=2;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="520" y="60" width="520" height="280" as="geometry"/>
+        </mxCell>
+        <mxCell id="p2-label" value="阶段2: 项目创建 &amp; 资产上传" style="text;html=1;fontSize=14;fontStyle=1;fontColor=#2e7d32;" vertex="1" parent="1">
+          <mxGeometry x="640" y="65" width="240" height="25" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="p2-project" value="&lt;b&gt;POST /projects&lt;/b&gt;&lt;br&gt;创建项目&lt;br&gt;自动设创建者为Admin" style="rounded=1;fillColor=#ffffff;strokeColor=#43a047;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="540" y="110" width="160" height="55" as="geometry"/>
+        </mxCell>
+        <mxCell id="p2-join" value="&lt;b&gt;POST /projects/{id}/join&lt;/b&gt;&lt;br&gt;组成员加入&lt;br&gt;MembershipValidator校验" style="rounded=1;fillColor=#ffffff;strokeColor=#43a047;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="730" y="110" width="170" height="55" as="geometry"/>
+        </mxCell>
+        <mxCell id="p2-upload" value="&lt;b&gt;POST /assets/upload&lt;/b&gt;&lt;br&gt;MultipartFile 200MB&lt;br&gt;MinIO预签名URL上传&lt;br&gt;文件类型自动检测" style="rounded=1;fillColor=#c8e6c9;strokeColor=#2e7d32;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="560" y="190" width="180" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="p2-link" value="&lt;b&gt;POST /assets/{id}/link-to-project&lt;/b&gt;&lt;br&gt;资产链入项目&lt;br&gt;双重检查: ownership+membership" style="rounded=1;fillColor=#ffffff;strokeColor=#43a047;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="770" y="190" width="220" height="55" as="geometry"/>
+        </mxCell>
+        <mxCell id="p2-version" value="&lt;b&gt;版本管理&lt;/b&gt;&lt;br&gt;createVersion&lt;br&gt;rollback / diff" style="rounded=1;fillColor=#ffffff;strokeColor=#43a047;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="560" y="275" width="140" height="50" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="arr-p2-1" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#2e7d32;strokeWidth=2;" edge="1" parent="1" source="p2-project" target="p2-upload">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arr-p2-2" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#2e7d32;strokeWidth=2;" edge="1" parent="1" source="p2-upload" target="p2-link">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arr-p2-3" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#2e7d32;strokeWidth=1;" edge="1" parent="1" source="p2-link" target="p2-version">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 认证 → 项目 连接 -->
+        <mxCell id="arr-p1-p2" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#666666;strokeWidth=3;" edge="1" parent="1" source="p1-session" target="p2-project">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arr-p1-p2-label" value="UserContextHolder&lt;br&gt;getCurrentUserId()" style="text;html=1;fontSize=9;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="475" y="250" width="80" height="25" as="geometry"/>
+        </mxCell>
+
+        <!-- ================================================================ -->
+        <!-- 阶段3: Agent分析 -->
+        <!-- ================================================================ -->
+        <mxCell id="phase3-bg" value="" style="rounded=1;fillColor=#fff3e0;strokeColor=#e65100;strokeWidth=2;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="20" y="370" width="1020" height="280" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3-label" value="阶段3: Agent智能分析 &amp; 视频处理" style="text;html=1;fontSize=14;fontStyle=1;fontColor=#e65100;" vertex="1" parent="1">
+          <mxGeometry x="310" y="375" width="300" height="25" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="p3-create" value="&lt;b&gt;POST /agent/videos&lt;/b&gt;&lt;br&gt;创建AI视频元数据&lt;br&gt;关联资产+Prompt" style="rounded=1;fillColor=#ffffff;strokeColor=#ef6c00;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="40" y="420" width="170" height="55" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3-mq-send" value="&lt;b&gt;发MQ消息&lt;/b&gt;&lt;br&gt;rabbitTemplate&lt;br&gt;.convertAndSend()&lt;br&gt;立即返回200" style="rounded=1;fillColor=#ffe0b2;strokeColor=#ef6c00;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="250" y="415" width="150" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3-mq-consume" value="&lt;b&gt;VideoFrameWorker&lt;/b&gt;&lt;br&gt;@RabbitListener&lt;br&gt;异步消费消息" style="rounded=1;fillColor=#ffe0b2;strokeColor=#ef6c00;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="440" y="415" width="160" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3-ffmpeg" value="&lt;b&gt;FFmpeg抽帧&lt;/b&gt;&lt;br&gt;-skip_frame nokey&lt;br&gt;I-frame JPEG&lt;br&gt;320px缩略图" style="rounded=1;fillColor=#ffffff;strokeColor=#ef6c00;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="640" y="420" width="150" height="55" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3-minio-upload" value="&lt;b&gt;MinIO上传缩略图&lt;/b&gt;&lt;br&gt;bucket: jimeng" style="rounded=1;fillColor=#ffffff;strokeColor=#ef6c00;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="830" y="420" width="150" height="55" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="p3-analysis" value="&lt;b&gt;POST /agent/analyze&lt;/b&gt;&lt;br&gt;PromptAnalysisService&lt;br&gt;LLM三级策略分析" style="rounded=1;fillColor=#c8e6c9;strokeColor=#2e7d32;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="510" width="180" height="55" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3-rag" value="&lt;b&gt;GET /agent/prompts/search&lt;/b&gt;&lt;br&gt;RAG语义检索&lt;br&gt;PromptEmbeddingService&lt;br&gt;余弦相似度匹配" style="rounded=1;fillColor=#e8eaf6;strokeColor=#283593;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="260" y="510" width="180" height="55" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3-react" value="&lt;b&gt;POST /agent/execute(SSE)&lt;/b&gt;&lt;br&gt;AgentOrchestrator&lt;br&gt;ReAct自主执行&lt;br&gt;Thought→Action→Obs" style="rounded=1;fillColor=#f3e5f5;strokeColor=#6a1b9a;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="480" y="505" width="200" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3-report" value="&lt;b&gt;生成Agent报告&lt;/b&gt;&lt;br&gt;资产统计+异常率&lt;br&gt;TOP Prompt排行" style="rounded=1;fillColor=#ffffff;strokeColor=#ef6c00;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="720" y="510" width="160" height="55" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3-dlq" value="&lt;b&gt;失败处理&lt;/b&gt;&lt;br&gt;3次重试&lt;br&gt;→ 死信队列DLQ" style="rounded=1;fillColor=#ffcdd2;strokeColor=#c62828;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="920" y="420" width="100" height="55" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="arr-p3-1" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#e65100;strokeWidth=2;" edge="1" parent="1" source="p3-create" target="p3-mq-send">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arr-p3-2" value="MQ消息" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#e65100;strokeWidth=2;dashed=1;" edge="1" parent="1" source="p3-mq-send" target="p3-mq-consume">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arr-p3-3" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#e65100;strokeWidth=2;" edge="1" parent="1" source="p3-mq-consume" target="p3-ffmpeg">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arr-p3-4" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#e65100;strokeWidth=2;" edge="1" parent="1" source="p3-ffmpeg" target="p3-minio-upload">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arr-p3-5" value="失败" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#c62828;strokeWidth=2;" edge="1" parent="1" source="p3-mq-consume" target="p3-dlq">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arr-p3-6" value="分析" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#e65100;strokeWidth=1;" edge="1" parent="1" source="p3-create" target="p3-analysis">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- ================================================================ -->
+        <!-- 阶段4: 评审+市场 -->
+        <!-- ================================================================ -->
+        <mxCell id="phase4-bg" value="" style="rounded=1;fillColor=#fce4ec;strokeColor=#c62828;strokeWidth=2;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="20" y="680" width="1020" height="220" as="geometry"/>
+        </mxCell>
+        <mxCell id="p4-label" value="阶段4: 评审协作 &amp; 市场发布" style="text;html=1;fontSize=14;fontStyle=1;fontColor=#c62828;" vertex="1" parent="1">
+          <mxGeometry x="330" y="685" width="280" height="25" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="p4-review" value="&lt;b&gt;POST /reviews/comments&lt;/b&gt;&lt;br&gt;按帧批注(ReviewPanel)&lt;br&gt;评论/回复/状态流转" style="rounded=1;fillColor=#ffffff;strokeColor=#d32f2f;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="40" y="730" width="200" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="p4-draft" value="&lt;b&gt;DraftBoard&lt;/b&gt;&lt;br&gt;帧条浏览+Canvas&lt;br&gt;Agent分析+标注&lt;br&gt;版本生成" style="rounded=1;fillColor=#ffffff;strokeColor=#d32f2f;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="280" y="730" width="170" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="p4-market" value="&lt;b&gt;POST /market/templates&lt;/b&gt;&lt;br&gt;发布到模板市场&lt;br&gt;DRAFT→REVIEW→PUBLISHED" style="rounded=1;fillColor=#ffcdd2;strokeColor=#c62828;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="490" y="730" width="200" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="p4-order" value="&lt;b&gt;POST /market/orders&lt;/b&gt;&lt;br&gt;布隆过滤器防重复&lt;br&gt;订单创建+状态流转" style="rounded=1;fillColor=#ffffff;strokeColor=#d32f2f;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="730" y="730" width="200" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="p4-cache" value="&lt;b&gt;缓存一致性&lt;/b&gt;&lt;br&gt;延迟双删(800ms)&lt;br&gt;evictByPattern" style="rounded=1;fillColor=#ffffff;strokeColor=#d32f2f;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="520" y="810" width="150" height="55" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="arr-p4-1" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#c62828;strokeWidth=2;" edge="1" parent="1" source="p4-review" target="p4-draft">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arr-p4-2" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#c62828;strokeWidth=2;" edge="1" parent="1" source="p4-draft" target="p4-market">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arr-p4-3" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#c62828;strokeWidth=2;" edge="1" parent="1" source="p4-market" target="p4-order">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arr-p4-4" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#c62828;strokeWidth=1;dashed=1;" edge="1" parent="1" source="p4-market" target="p4-cache">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 跨阶段连接 -->
+        <mxCell id="arr-p2-p3" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#666666;strokeWidth=3;" edge="1" parent="1" source="p2-upload" target="p3-create">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arr-p3-p4" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#666666;strokeWidth=3;" edge="1" parent="1" source="p3-analysis" target="p4-review">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 可见性标注 -->
+        <mxCell id="visibility-note" value="&lt;b&gt;全流程可见性强制:&lt;/b&gt; 每个Service调用前都经过 MembershipValidator.requireXxx() 校验" style="rounded=1;fillColor=#ffebee;strokeColor=#c62828;strokeWidth=2;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="20" y="920" width="1020" height="30" as="geometry"/>
+        </mxCell>
+
+        <!-- 安全标注 -->
+        <mxCell id="security-note" value="&lt;b&gt;安全链路:&lt;/b&gt; JWT验证 → Token黑名单检测 → Redis Session → ThreadLocal → UserContextHolder → MembershipValidator → Controller → Service" style="rounded=1;fillColor=#e3f2fd;strokeColor=#1565c0;strokeWidth=2;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="20" y="960" width="1020" height="30" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -85,6 +85,16 @@ langchain4j:
   max-tokens: 512
   max-memory-messages: 10
 
+# RAG语义检索配置
+rag:
+  enabled: true
+  min-keyword-length: 2
+  default-top-k: 10
+
+# FFmpeg路径 (留空则自动检测 PATH / C:\ffmpeg / /usr/bin)
+ffmpeg:
+  path: ${FFMPEG_PATH:}
+
 # JWT配置
 jwt:
   secret: ${JWT_SECRET:IntelliEngineSecretKey2024ForAIGCAssetManagementPlatformNavis}

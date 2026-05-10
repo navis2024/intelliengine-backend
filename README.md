@@ -9,7 +9,7 @@
 [![MinIO](https://img.shields.io/badge/MinIO-Object%20Storage-blue)](https://min.io/)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
-面向 AIGC 创作者的资产管理平台，支持视频/图片等资产的版本管理、AI 元数据标注、智能分析报告、模板市场交易。
+面向 AIGC 创作者的资产管理平台，支持视频/图片等资产的版本管理、AI 元数据标注、**RAG语义检索**、**ReAct Agent自主执行**、**多Agent协同**、模板市场交易。
 
 ## 架构总览
 
@@ -35,6 +35,12 @@
 │        │  │Session │  │ :9000  │  │  Queue   │  │        │
 └────────┘  └────────┘  └────────┘  └──────────┘  └────────┘
 ```
+
+> 📐 **详细架构图**（可用 draw.io 打开编辑）：
+> - [01-系统总体架构](docs/diagrams/01-system-architecture.drawio) — 四层架构（用户→网关→业务→中间件）+ 数据流
+> - [02-Agent模块架构](docs/diagrams/02-agent-module.drawio) — LLM策略/ReAct循环/多Agent协同/RAG检索
+> - [03-核心业务流程](docs/diagrams/03-business-flow.drawio) — 注册→项目→资产→Agent→评审→市场全链路
+> - [04-Redis技术栈](docs/diagrams/04-redis-tech.drawio) — 锁/缓存/Session/限流/布隆+面试要点
 
 ## 技术栈
 
@@ -99,7 +105,26 @@ front_ZQ/intelliengine-frontend/src/
 - `llm.enabled=true` 时激活真实 LLM 分析（OpenAI 兼容接口）
 - LLM 不可用时自动回退基础增强
 
-### 4. RabbitMQ 异步抽帧
+### 4. RAG 语义检索
+- `PromptEmbeddingService`: 本地关键词频率向量 + 余弦相似度，零外部依赖即可展示RAG全链路
+- `OpenAiEmbeddingService`: OpenAI text-embedding-3-small + LangChain4j InMemoryEmbeddingStore，真实语义检索
+- `RagService`: 自动切换双模式，Prompt创建自动索引，支持全量重建
+- 语义搜索端点：`GET /v1/agent/prompts/search?q=自然语言查询`
+
+### 5. ReAct Agent 自主执行
+- `AgentOrchestrator`: Thought → Action → Observation 循环，工具注册表 + 任务规划引擎
+- 4个内置工具：`analyze_prompt` / `extract_frames` / `generate_report` / `search_prompts`
+- SSE流式输出每一个思考/行动/观察步骤
+- 执行端点：`POST /v1/agent/execute?task=分析视频并生成报告`（SSE）
+
+### 6. 多Agent协同框架
+- `SupervisorAgent`: 任务规划 → 工具匹配 → 分派Worker
+- `WorkerAgent`: 异步监听任务 → 执行工具 → 回报结果
+- `AgentBus`: 基于Spring Event的Agent通信总线（收件箱 + 事件广播）
+- `WorkflowEngine`: Supervisor → Workers → Auditor → 汇总
+- 协同端点：`POST /v1/agent/workflow?task=...`（SSE）
+
+### 7. RabbitMQ 异步抽帧
 - `POST /v1/agent/videos` → 入库 → 发 MQ 消息 → 立即返回 200
 - `VideoFrameWorker` 异步消费，提取 I-frame，失败 3 次进死信队列
 - HTTP 线程不再阻塞在 FFmpeg 进程上
@@ -150,7 +175,8 @@ npm install && npm run dev
 | 资产 | `/api/v1/assets` | upload, versions, linkToProject, diff |
 | 评审 | `/api/v1/reviews` | comments, replies, status |
 | 市场 | `/api/v1/market` | templates, orders, favorites |
-| Agent | `/api/v1/agent` | ai-videos, frames, tasks, reports, prompts |
+| Agent | `/api/v1/agent` | ai-videos, frames, tasks, reports, prompts, tools, execute(SSE), workflow(SSE) |
+| Agent RAG | `/api/v1/agent` | prompts/search(语义), prompts/reindex(索引重建) |
 | 健康 | `/api/health` | status, cache/stats, cache/hot-keys |
 
 ## 数据库表（15张）
@@ -174,6 +200,7 @@ mvn test
 
 ## 版本
 
+- `v1.3.0` — RAG语义检索、ReAct Agent执行引擎、多Agent协同框架（Supervisor+Worker+Auditor）
 - `v1.2.0` — Agent 模块、Redis 深度集成、LLM 接入、RabbitMQ 异步、数据可见性
 - `v1.1.0` — JWT 认证、Docker 部署
 - `v1.0.0` — 初始版本，5 个核心模块
