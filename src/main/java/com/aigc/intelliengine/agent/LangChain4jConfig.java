@@ -1,6 +1,5 @@
 package com.aigc.intelliengine.agent;
 
-import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModelName;
@@ -39,15 +38,10 @@ public class LangChain4jConfig {
     }
 
     @Bean
-    public ChatMemory chatMemory() {
-        return MessageWindowChatMemory.withMaxMessages(maxMemoryMessages);
-    }
-
-    @Bean
-    public LangChain4jAgent langChain4jAgent(OpenAiChatModel model, ChatMemory memory, LangChain4jTools tools) {
+    public LangChain4jAgent langChain4jAgent(OpenAiChatModel model, LangChain4jTools tools) {
         return AiServices.builder(LangChain4jAgent.class)
                 .chatLanguageModel(model)
-                .chatMemory(memory)
+                .chatMemoryProvider(conversationId -> MessageWindowChatMemory.withMaxMessages(maxMemoryMessages))
                 .tools(tools)
                 .build();
     }

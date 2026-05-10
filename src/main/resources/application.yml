@@ -70,19 +70,19 @@ llm:
   enabled: true
   provider: kimi
   api-key: ${LLM_API_KEY:sk-zgVvhNHyJpEhCclHxQ8VLKeHrW6OP3k69Ypc6GaP7syFWHXt}
-  base-url: https://api.moonshot.cn
+  base-url: https://api.moonshot.cn/v1
   model: kimi-k2.6
-  temperature: 0.7
-  max-tokens: 1024
+  temperature: 1.0
+  max-tokens: 4096
 
 # LangChain4j配置 (Agent增强 — 支持ChatMemory + Function Calling)
 langchain4j:
   enabled: true
   api-key: ${LANGCHAIN4J_API_KEY:sk-zgVvhNHyJpEhCclHxQ8VLKeHrW6OP3k69Ypc6GaP7syFWHXt}
-  base-url: https://api.moonshot.cn
+  base-url: https://api.moonshot.cn/v1
   model-name: kimi-k2.6
-  temperature: 0.7
-  max-tokens: 1024
+  temperature: 1.0
+  max-tokens: 4096
   max-memory-messages: 10
 
 # RAG语义检索配置

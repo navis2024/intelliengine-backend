@@ -108,7 +108,7 @@ public class OpenAIAnalysisStrategy implements PromptAnalysisStrategy {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Authorization", "Bearer " + config.getApiKey());
 
-        String url = config.getBaseUrl() + "/v1/chat/completions";
+        String url = config.getBaseUrl() + "/chat/completions";
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
 
         log.debug("Calling LLM API: {}", url);
