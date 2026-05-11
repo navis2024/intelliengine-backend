@@ -207,6 +207,7 @@ mvn test
 
 ## 版本
 
+- `v1.5.0` — LLM驱动Agent规划、RAG评估指标(Recall@K/MRR)、K8s探针
 - `v1.4.0` — Actuator + Prometheus可观测性、MIT License、工程规范优化
 - `v1.3.0` — RAG语义检索、ReAct Agent执行引擎、多Agent协同框架（Supervisor+Worker+Auditor）
 - `v1.2.0` — Agent 模块、Redis 深度集成、LLM 接入、RabbitMQ 异步、数据可见性

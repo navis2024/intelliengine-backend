@@ -13,6 +13,7 @@ import com.aigc.intelliengine.agent.model.vo.*;
 import com.aigc.intelliengine.agent.collaboration.AgentBus;
 import com.aigc.intelliengine.agent.collaboration.AgentMessage;
 import com.aigc.intelliengine.agent.collaboration.WorkflowEngine;
+import com.aigc.intelliengine.agent.rag.RagEvaluator;
 import com.aigc.intelliengine.agent.tools.AgentTool;
 import com.aigc.intelliengine.common.model.ApiResponse;
 import com.aigc.intelliengine.common.security.UserContextHolder;
@@ -23,8 +24,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
@@ -42,6 +45,7 @@ public class AgentController {
     private final List<AgentTool> tools;
     private final WorkflowEngine workflowEngine;
     private final AgentBus agentBus;
+    private final RagEvaluator ragEvaluator;
 
     @PostMapping("/frames/{frameId}/analyze")
     @Operation(summary = "分析帧提示词")
@@ -304,5 +308,28 @@ public class AgentController {
                 "inbox", agentBus.pollInbox(agent),
                 "history", agentBus.getHistory(agent)
         ));
+    }
+
+    // ==================== RAG Evaluation ====================
+
+    @PostMapping("/rag/eval")
+    @Operation(summary = "RAG检索质量评估 — Recall@K + MRR")
+    public ApiResponse<RagEvaluator.EvalResult> evaluateRag(@RequestBody Map<String, List<Long>> testCases) {
+        Map<String, Set<Long>> cases = new LinkedHashMap<>();
+        testCases.forEach((query, ids) -> cases.put(query, Set.copyOf(ids)));
+        return ApiResponse.success(ragEvaluator.evaluate(cases, 10));
+    }
+
+    // ==================== Monitoring ====================
+
+    @GetMapping("/stats")
+    @Operation(summary = "Agent模块运行统计")
+    public ApiResponse<Map<String, Object>> agentStats() {
+        Map<String, Object> stats = new LinkedHashMap<>();
+        stats.put("toolsCount", tools.size());
+        stats.put("toolNames", tools.stream().map(AgentTool::name).toList());
+        stats.put("agentBusInbox", agentBus.pollInbox("SUPERVISOR").size());
+        stats.put("planningMode", "LLM + keyword fallback");
+        return ApiResponse.success(stats);
     }
 }
