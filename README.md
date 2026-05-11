@@ -7,6 +7,7 @@
 [![Redis](https://img.shields.io/badge/Redis-Caching%20%7C%20Lock%20%7C%20Session-red)](https://redis.io/)
 [![RabbitMQ](https://img.shields.io/badge/RabbitMQ-Async%20Queue-orange)](https://www.rabbitmq.com/)
 [![MinIO](https://img.shields.io/badge/MinIO-Object%20Storage-blue)](https://min.io/)
+[![Prometheus](https://img.shields.io/badge/Prometheus-Metrics-e6522c)](https://prometheus.io/)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 面向 AIGC 创作者的资产管理平台，支持视频/图片等资产的版本管理、AI 元数据标注、**RAG语义检索**、**ReAct Agent自主执行**、**多Agent协同**、模板市场交易。
@@ -58,6 +59,7 @@
 | LLM | OpenAI 兼容接口 | 策略模式，可替换 |
 | 前端 | Vue 3 + TypeScript + Tailwind | Pinia 状态管理 |
 | 文档 | SpringDoc OpenAPI 2.3 | Swagger UI |
+| 监控 | Spring Boot Actuator + Micrometer | Prometheus 指标暴露 + 健康探针 |
 | 部署 | Docker Compose | MySQL + Redis + RabbitMQ + MinIO + Nginx |
 
 ## 项目结构
@@ -124,7 +126,12 @@ front_ZQ/intelliengine-frontend/src/
 - `WorkflowEngine`: Supervisor → Workers → Auditor → 汇总
 - 协同端点：`POST /v1/agent/workflow?task=...`（SSE）
 
-### 7. RabbitMQ 异步抽帧
+### 7. 可观测性（Actuator + Prometheus）
+- `health/readiness/liveness` 健康探针，K8s 就绪检测
+- `metrics` 端点暴露 JVM 内存/GC/线程/HTTP 请求/Cache 命中率指标
+- `prometheus` 端点可直接对接 Prometheus + Grafana
+
+### 8. RabbitMQ 异步抽帧
 - `POST /v1/agent/videos` → 入库 → 发 MQ 消息 → 立即返回 200
 - `VideoFrameWorker` 异步消费，提取 I-frame，失败 3 次进死信队列
 - HTTP 线程不再阻塞在 FFmpeg 进程上
@@ -200,6 +207,7 @@ mvn test
 
 ## 版本
 
+- `v1.4.0` — Actuator + Prometheus可观测性、MIT License、工程规范优化
 - `v1.3.0` — RAG语义检索、ReAct Agent执行引擎、多Agent协同框架（Supervisor+Worker+Auditor）
 - `v1.2.0` — Agent 模块、Redis 深度集成、LLM 接入、RabbitMQ 异步、数据可见性
 - `v1.1.0` — JWT 认证、Docker 部署
