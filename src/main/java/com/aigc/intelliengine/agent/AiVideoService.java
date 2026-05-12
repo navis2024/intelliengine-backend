@@ -4,6 +4,7 @@ import com.aigc.intelliengine.agent.model.dto.AiVideoCreateRequest;
 import com.aigc.intelliengine.agent.model.entity.AssetAiVideo;
 import com.aigc.intelliengine.agent.model.entity.VideoFrame;
 import com.aigc.intelliengine.asset.AssetMapper;
+import com.aigc.intelliengine.asset.FileStorageService;
 import com.aigc.intelliengine.asset.AssetVersionMapper;
 import com.aigc.intelliengine.asset.model.entity.AssetInfo;
 import com.aigc.intelliengine.asset.model.entity.AssetVersion;
@@ -42,6 +43,7 @@ public class AiVideoService {
     private final PromptAnalysisService promptAnalysisService;
     private final VideoFrameExtractionService frameExtractionService;
     private final VisionAnalysisService visionAnalysisService;
+    private final FileStorageService fileStorageService;
     private final RabbitTemplate rabbitTemplate;
 
     public AssetAiVideo findByAssetId(Long assetId, Long userId) {
@@ -232,6 +234,10 @@ public class AiVideoService {
                 "commentsIncorporated", comments.size(),
                 "framesAnalyzed", frames.size()
         );
+    }
+
+    public String getThumbnailPresignedUrl(String objectPath) {
+        return fileStorageService.getPresignedUrl(objectPath);
     }
 
     public int triggerFrameExtraction(Long videoId, Long userId) {

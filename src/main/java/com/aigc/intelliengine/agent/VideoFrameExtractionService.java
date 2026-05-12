@@ -78,15 +78,13 @@ public class VideoFrameExtractionService {
 
     private int extractWithFfmpeg(Long aiVideoId, String videoUrl, String ffmpeg,
                                    Path tempDir, int fps, BigDecimal duration) throws Exception {
-        // Extract keyframes (I-frames) as JPEG thumbnails
+        // Extract evenly-spaced frames across the full video duration (1 frame per 2 seconds)
         String outputPattern = tempDir.resolve("frame_%04d.jpg").toString();
         List<String> cmd = Arrays.asList(
                 ffmpeg,
-                "-skip_frame", "nokey",       // Only I-frames
                 "-i", videoUrl,
-                "-vsync", "vfr",
-                "-vf", "scale=" + THUMBNAIL_WIDTH + ":-1",
-                "-q:v", "2",                   // High quality JPEG
+                "-vf", "fps=0.5,scale=" + THUMBNAIL_WIDTH + ":-1",
+                "-q:v", "2",
                 "-frame_pts", "1",
                 "-frames:v", String.valueOf(MAX_FRAMES),
                 "-y",

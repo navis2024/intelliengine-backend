@@ -171,6 +171,16 @@ public class AgentController {
         return ApiResponse.success(aiVideoService.generateNextVersion(videoId, projectId, UserContextHolder.getCurrentUserId()));
     }
 
+    @GetMapping("/frames/{frameId}/thumbnail")
+    @Operation(summary = "获取帧缩略图（302重定向到新鲜预签名URL）")
+    public void getFrameThumbnail(@PathVariable Long frameId, jakarta.servlet.http.HttpServletResponse resp) throws java.io.IOException {
+        VideoFrame frame = aiVideoService.findFrameById(frameId);
+        if (frame == null || frame.getThumbnailUrl() == null) { resp.sendError(404); return; }
+        String objectPath = "frames/" + frame.getVideoId() + "/thumb_" + frame.getFrameNumber() + ".jpg";
+        String fresh = aiVideoService.getThumbnailPresignedUrl(objectPath);
+        resp.sendRedirect(fresh != null ? fresh : frame.getThumbnailUrl());
+    }
+
     @PostMapping("/videos/{videoId}/extract-frames")
     @Operation(summary = "触发FFmpeg帧提取 — 从真实视频文件中提取关键帧缩略图并上传MinIO")
     public ApiResponse<Map<String, Object>> extractFrames(@PathVariable Long videoId) {
