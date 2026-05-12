@@ -42,6 +42,7 @@ public class NotificationService {
         vo.setTitle(n.getTitle());
         vo.setContent(n.getContent());
         vo.setType(n.getType());
+        vo.setRelatedType(n.getRelatedType());
         vo.setIsRead(n.getIsRead());
         vo.setRelatedId(n.getRelatedId());
         vo.setCreatedAt(n.getCreatedAt());

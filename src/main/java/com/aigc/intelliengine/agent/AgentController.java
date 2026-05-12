@@ -154,9 +154,34 @@ public class AgentController {
     }
 
     @GetMapping("/videos")
-    @Operation(summary = "获取所有AI视频列表")
-    public ApiResponse<List<AiVideoVO>> listAiVideos() {
-        return ApiResponse.success(aiVideoService.listAll(UserContextHolder.getCurrentUserId()).stream().map(this::toAiVideoVO).collect(Collectors.toList()));
+    @Operation(summary = "获取AI视频列表，可按项目过滤")
+    public ApiResponse<List<AiVideoVO>> listAiVideos(@RequestParam(required = false) Long projectId) {
+        List<AssetAiVideo> videos;
+        if (projectId != null) {
+            videos = aiVideoService.listByProject(projectId, UserContextHolder.getCurrentUserId());
+        } else {
+            videos = aiVideoService.listAll(UserContextHolder.getCurrentUserId());
+        }
+        return ApiResponse.success(videos.stream().map(this::toAiVideoVO).collect(Collectors.toList()));
+    }
+
+    @PostMapping("/videos/{videoId}/generate-next-version")
+    @Operation(summary = "AI生成下一版本 — 综合审阅意见和帧标注，生成优化后的Prompt和资产版本")
+    public ApiResponse<Map<String, Object>> generateNextVersion(@PathVariable Long videoId, @RequestParam Long projectId) {
+        return ApiResponse.success(aiVideoService.generateNextVersion(videoId, projectId, UserContextHolder.getCurrentUserId()));
+    }
+
+    @PostMapping("/videos/{videoId}/extract-frames")
+    @Operation(summary = "触发FFmpeg帧提取 — 从真实视频文件中提取关键帧缩略图并上传MinIO")
+    public ApiResponse<Map<String, Object>> extractFrames(@PathVariable Long videoId) {
+        int count = aiVideoService.triggerFrameExtraction(videoId, UserContextHolder.getCurrentUserId());
+        return ApiResponse.success(Map.of("videoId", videoId, "framesExtracted", count));
+    }
+
+    @PostMapping("/videos/{videoId}/analyze-vision")
+    @Operation(summary = "多模态视觉分析 — 用Kimi vision模型分析每帧画面并生成中文描述")
+    public ApiResponse<Map<String, Object>> analyzeVision(@PathVariable Long videoId) {
+        return ApiResponse.success(aiVideoService.analyzeFramesWithVision(videoId, UserContextHolder.getCurrentUserId()));
     }
 
     @DeleteMapping("/videos/{id}")

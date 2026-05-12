@@ -93,6 +93,12 @@ public class AssetService {
         return toVO(asset);
     }
 
+    public String getPlayUrl(Long assetId, Long userId) {
+        AssetInfo asset = validator.requireAssetAccess(assetId, userId);
+        if (asset.getFileUrl() == null) throw new BusinessException("资产文件不存在");
+        return fileStorageService.getPresignedUrl(asset.getFileUrl());
+    }
+
     @Transactional
     public void deleteAsset(Long id, Long userId) {
         AssetInfo asset = assetMapper.selectById(id);

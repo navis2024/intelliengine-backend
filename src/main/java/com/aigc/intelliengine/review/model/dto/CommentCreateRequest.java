@@ -11,6 +11,8 @@ import java.math.BigDecimal;
 public class CommentCreateRequest {
     @NotNull @Schema(description = "资产ID", required = true)
     private Long assetId;
+    @NotNull @Schema(description = "项目ID", required = true)
+    private Long projectId;
     @NotBlank @Schema(description = "评论内容", required = true)
     private String content;
     @Schema(description = "视频时间戳(秒)")

@@ -3,6 +3,7 @@ package com.aigc.intelliengine.common.redis;
 import com.aigc.intelliengine.common.metrics.MetricsService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import jakarta.annotation.PostConstruct;
@@ -40,6 +41,7 @@ public class MultiLevelCacheService {
                                    @Qualifier("cacheExecutor") Executor cacheExecutor) {
         this.redisTemplate = redisTemplate;
         this.objectMapper = new ObjectMapper();
+        this.objectMapper.registerModule(new JavaTimeModule());
         this.metrics = metrics;
         this.cacheExecutor = cacheExecutor;
     }

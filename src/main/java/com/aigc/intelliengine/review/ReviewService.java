@@ -28,6 +28,7 @@ public class ReviewService {
         validator.requireAssetAccess(request.getAssetId(), userId);
         ReviewComment comment = new ReviewComment();
         comment.setAssetId(request.getAssetId());
+        comment.setProjectId(request.getProjectId());
         comment.setContent(request.getContent());
         comment.setTimestamp(request.getTimestamp());
         comment.setPositionX(request.getPositionX());
@@ -108,6 +109,7 @@ public class ReviewService {
         ReviewCommentVO vo = new ReviewCommentVO();
         vo.setId(String.valueOf(c.getId()));
         vo.setAssetId(String.valueOf(c.getAssetId()));
+        vo.setProjectId(String.valueOf(c.getProjectId()));
         vo.setContent(c.getContent());
         vo.setCommentType(c.getCommentType());
         vo.setTimestamp(c.getTimestamp());

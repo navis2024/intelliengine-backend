@@ -11,6 +11,7 @@ public class NotificationVO {
     private String title;
     private String content;
     private String type;
+    private String relatedType;
     private Integer isRead;
     private Long relatedId;
     private LocalDateTime createdAt;

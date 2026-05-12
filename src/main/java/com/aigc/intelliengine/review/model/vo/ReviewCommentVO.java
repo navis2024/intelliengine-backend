@@ -11,6 +11,7 @@ import java.util.List;
 public class ReviewCommentVO {
     @Schema(description = "评论ID") private String id;
     @Schema(description = "资产ID") private String assetId;
+    @Schema(description = "项目ID") private String projectId;
     @Schema(description = "内容") private String content;
     @Schema(description = "类型") private String commentType;
     @Schema(description = "时间戳") private BigDecimal timestamp;

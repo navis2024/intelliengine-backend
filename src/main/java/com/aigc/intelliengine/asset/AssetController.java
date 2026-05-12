@@ -85,6 +85,12 @@ public class AssetController {
         return ApiResponse.success(assetService.linkToProject(id, projectId, UserContextHolder.getCurrentUserId()));
     }
 
+    @GetMapping("/{id}/play-url")
+    @Operation(summary = "获取资产文件播放URL（预签名）")
+    public ApiResponse<String> getPlayUrl(@PathVariable Long id) {
+        return ApiResponse.success(assetService.getPlayUrl(id, UserContextHolder.getCurrentUserId()));
+    }
+
     @GetMapping("/{id}/versions/diff")
     @Operation(summary = "对比两个版本")
     public ApiResponse<Map<String, Object>> diffVersions(@PathVariable Long id, @RequestParam Integer v1, @RequestParam Integer v2) {

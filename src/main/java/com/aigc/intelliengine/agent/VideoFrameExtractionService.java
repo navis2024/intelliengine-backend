@@ -3,7 +3,8 @@ package com.aigc.intelliengine.agent;
 import com.aigc.intelliengine.agent.model.entity.VideoFrame;
 import com.aigc.intelliengine.asset.FileStorageService;
 import com.aigc.intelliengine.common.exception.BusinessException;
-import lombok.RequiredArgsConstructor;
+import io.minio.MinioClient;
+import io.minio.PutObjectArgs;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -17,14 +18,22 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class VideoFrameExtractionService {
 
     private final VideoFrameMapper videoFrameMapper;
     private final FileStorageService fileStorageService;
+    private final MinioClient minioClient;
 
     @Value("${minio.bucket}")
     private String bucket;
+
+    public VideoFrameExtractionService(VideoFrameMapper videoFrameMapper,
+                                        FileStorageService fileStorageService,
+                                        MinioClient minioClient) {
+        this.videoFrameMapper = videoFrameMapper;
+        this.fileStorageService = fileStorageService;
+        this.minioClient = minioClient;
+    }
 
     @Value("${ffmpeg.path:}")
     private String configuredFfmpegPath;
@@ -181,14 +190,18 @@ public class VideoFrameExtractionService {
     private String uploadThumbnail(File file, Long aiVideoId, int frameNum) {
         try {
             String objectName = "frames/" + aiVideoId + "/thumb_" + frameNum + ".jpg";
-            // For simplicity, reuse MinIO upload via a direct path
-            // The thumbnail is uploaded to MinIO using the same bucket
             byte[] data = Files.readAllBytes(file.toPath());
-            // Store the thumbnail in MinIO using FileStorageService-compatible path
-            // For now, return a relative path that can be resolved later
-            return objectName;
-        } catch (IOException e) {
-            log.warn("Failed to upload thumbnail for frame #{}", frameNum, e);
+            minioClient.putObject(PutObjectArgs.builder()
+                    .bucket(bucket)
+                    .object(objectName)
+                    .stream(new ByteArrayInputStream(data), data.length, -1)
+                    .contentType("image/jpeg")
+                    .build());
+            log.info("Thumbnail uploaded: {}/{}", bucket, objectName);
+            // Return presigned URL so frontend can display thumbnails
+            return fileStorageService.getPresignedUrl(objectName);
+        } catch (Exception e) {
+            log.warn("Failed to upload thumbnail for frame #{}: {}", frameNum, e.getMessage());
             return null;
         }
     }
