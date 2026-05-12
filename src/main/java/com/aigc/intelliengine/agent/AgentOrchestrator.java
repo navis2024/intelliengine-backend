@@ -1,15 +1,13 @@
 package com.aigc.intelliengine.agent;
 
 import com.aigc.intelliengine.agent.tools.AgentTool;
-import com.aigc.intelliengine.agent.model.vo.AgentStepVO;
+import com.aigc.intelliengine.common.metrics.MetricsService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.chat.request.ChatRequest;
 import dev.langchain4j.model.chat.request.ResponseFormat;
 import dev.langchain4j.model.chat.request.ResponseFormatType;
-import dev.langchain4j.model.chat.request.json.JsonObjectSchema;
-import dev.langchain4j.model.chat.request.json.JsonStringSchema;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,14 +33,16 @@ public class AgentOrchestrator {
     private final List<AgentTool> tools;
     private final Map<String, AgentTool> toolRegistry = new LinkedHashMap<>();
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final MetricsService metrics;
 
     @Autowired(required = false)
     private OpenAiChatModel chatModel;
 
     private boolean llmPlanningAvailable;
 
-    public AgentOrchestrator(List<AgentTool> tools) {
+    public AgentOrchestrator(List<AgentTool> tools, MetricsService metrics) {
         this.tools = tools;
+        this.metrics = metrics;
     }
 
     @PostConstruct
@@ -62,6 +62,8 @@ public class AgentOrchestrator {
         SseEmitter emitter = new SseEmitter(300_000L);
 
         new Thread(() -> {
+            long start = System.currentTimeMillis();
+            String status = "success";
             try {
                 // Phase 1: 任务解析
                 emitStep(emitter, "planning",
@@ -116,12 +118,17 @@ public class AgentOrchestrator {
                 // Phase 3: 汇总
                 emitStep(emitter, "summary", buildSummary(context.toString()), null);
                 emitter.complete();
-                log.info("Agent task completed: {} steps, source={}", plan.size(), planSource);
+                long elapsed = System.currentTimeMillis() - start;
+                log.info("Agent task completed: {} steps, source={}, elapsed={}ms", plan.size(), planSource, elapsed);
 
             } catch (Exception e) {
+                status = "error";
                 log.error("Agent execution failed", e);
                 try { emitStep(emitter, "error", "Agent执行异常: " + e.getMessage(), null); } catch (Exception ignored) {}
                 emitter.completeWithError(e);
+            } finally {
+                long elapsed = System.currentTimeMillis() - start;
+                metrics.recordAgentExecution(elapsed, status);
             }
         }, "agent-worker-" + System.currentTimeMillis() % 10000).start();
 

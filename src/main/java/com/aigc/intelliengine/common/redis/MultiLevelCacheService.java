@@ -1,7 +1,7 @@
 package com.aigc.intelliengine.common.redis;
 
+import com.aigc.intelliengine.common.metrics.MetricsService;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -21,6 +21,7 @@ public class MultiLevelCacheService {
 
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
+    private final MetricsService metrics;
 
     private Cache<String, Object> localCache;
 
@@ -31,9 +32,10 @@ public class MultiLevelCacheService {
 
     private static final String CACHE_PREFIX = "cache:";
 
-    public MultiLevelCacheService(StringRedisTemplate redisTemplate) {
+    public MultiLevelCacheService(StringRedisTemplate redisTemplate, MetricsService metrics) {
         this.redisTemplate = redisTemplate;
         this.objectMapper = new ObjectMapper();
+        this.metrics = metrics;
     }
 
     @PostConstruct
@@ -53,12 +55,14 @@ public class MultiLevelCacheService {
         // L1: Caffeine local
         Object val = localCache.getIfPresent(fullKey);
         if (val != null) {
+            metrics.recordCacheHit("L1");
             return val;
         }
 
         // L2: Redis
         String json = redisTemplate.opsForValue().get(fullKey);
         if (json != null) {
+            metrics.recordCacheHit("L2");
             try {
                 val = objectMapper.readValue(json, Object.class);
                 localCache.put(fullKey, val);
@@ -67,6 +71,7 @@ public class MultiLevelCacheService {
                 log.warn("Redis cache deserialize failed for key={}", key, e);
             }
         }
+        metrics.recordCacheMiss();
         return null;
     }
 
