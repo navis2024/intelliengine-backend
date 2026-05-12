@@ -11,8 +11,11 @@ import dev.langchain4j.model.chat.request.ResponseFormatType;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import java.util.concurrent.Executor;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -34,15 +37,18 @@ public class AgentOrchestrator {
     private final Map<String, AgentTool> toolRegistry = new LinkedHashMap<>();
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final MetricsService metrics;
+    private final Executor agentExecutor;
 
     @Autowired(required = false)
     private OpenAiChatModel chatModel;
 
     private boolean llmPlanningAvailable;
 
-    public AgentOrchestrator(List<AgentTool> tools, MetricsService metrics) {
+    public AgentOrchestrator(List<AgentTool> tools, MetricsService metrics,
+                             @Qualifier("agentExecutor") Executor agentExecutor) {
         this.tools = tools;
         this.metrics = metrics;
+        this.agentExecutor = agentExecutor;
     }
 
     @PostConstruct
@@ -61,7 +67,7 @@ public class AgentOrchestrator {
     public SseEmitter execute(String taskDescription, Long userId) {
         SseEmitter emitter = new SseEmitter(300_000L);
 
-        new Thread(() -> {
+        agentExecutor.execute(() -> {
             long start = System.currentTimeMillis();
             String status = "success";
             try {
@@ -130,7 +136,7 @@ public class AgentOrchestrator {
                 long elapsed = System.currentTimeMillis() - start;
                 metrics.recordAgentExecution(elapsed, status);
             }
-        }, "agent-worker-" + System.currentTimeMillis() % 10000).start();
+        });
 
         return emitter;
     }

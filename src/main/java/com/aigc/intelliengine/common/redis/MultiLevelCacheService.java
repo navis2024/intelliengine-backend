@@ -7,8 +7,11 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+
+import java.util.concurrent.Executor;
 
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -22,6 +25,7 @@ public class MultiLevelCacheService {
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
     private final MetricsService metrics;
+    private final Executor cacheExecutor;
 
     private Cache<String, Object> localCache;
 
@@ -32,10 +36,12 @@ public class MultiLevelCacheService {
 
     private static final String CACHE_PREFIX = "cache:";
 
-    public MultiLevelCacheService(StringRedisTemplate redisTemplate, MetricsService metrics) {
+    public MultiLevelCacheService(StringRedisTemplate redisTemplate, MetricsService metrics,
+                                   @Qualifier("cacheExecutor") Executor cacheExecutor) {
         this.redisTemplate = redisTemplate;
         this.objectMapper = new ObjectMapper();
         this.metrics = metrics;
+        this.cacheExecutor = cacheExecutor;
     }
 
     @PostConstruct
@@ -195,6 +201,6 @@ public class MultiLevelCacheService {
             } catch (InterruptedException ignored) {}
             evictByPattern(pattern);
             log.debug("Cache second delete completed for pattern: {}", pattern);
-        });
+        }, cacheExecutor);
     }
 }

@@ -35,7 +35,7 @@ public class WorkerAgent {
     }
 
     /** 异步监听Supervisor分派的任务 */
-    @Async
+    @Async("taskExecutor")
     @EventListener
     public void onTaskAssigned(AgentBus.AgentMessageEvent event) {
         AgentMessage msg = event.message();

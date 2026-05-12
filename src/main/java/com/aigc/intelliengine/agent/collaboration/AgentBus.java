@@ -60,7 +60,7 @@ public class AgentBus {
      */
     public record AgentMessageEvent(Object source, AgentMessage message) {}
 
-    @Async
+    @Async("taskExecutor")
     @EventListener
     public void onAgentMessage(AgentMessageEvent event) {
         AgentMessage msg = event.message();
