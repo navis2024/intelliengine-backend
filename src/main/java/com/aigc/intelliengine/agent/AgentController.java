@@ -24,10 +24,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import java.util.stream.Collectors;
 
 @RestController
@@ -46,6 +50,7 @@ public class AgentController {
     private final WorkflowEngine workflowEngine;
     private final AgentBus agentBus;
     private final RagEvaluator ragEvaluator;
+    private final PromptLibraryMapper promptLibraryMapper;
 
     @PostMapping("/frames/{frameId}/analyze")
     @Operation(summary = "分析帧提示词")
@@ -357,6 +362,26 @@ public class AgentController {
         Map<String, Set<Long>> cases = new LinkedHashMap<>();
         testCases.forEach((query, ids) -> cases.put(query, Set.copyOf(ids)));
         return ApiResponse.success(ragEvaluator.evaluate(cases, 10));
+    }
+
+    @GetMapping("/rag/evaluate")
+    @Operation(summary = "RAG自动评估 — 从Prompt库构建测试用例，计算Recall@K+MRR")
+    public ApiResponse<Map<String, Object>> evaluateRagAuto(@RequestParam(defaultValue = "10") int topK) {
+        List<PromptLibrary> all = promptLibraryMapper.selectList(
+                new LambdaQueryWrapper<PromptLibrary>().eq(PromptLibrary::getIsDeleted, 0));
+        Map<String, List<Long>> byType = new LinkedHashMap<>();
+        for (PromptLibrary p : all) {
+            String t = p.getPromptType();
+            if (t == null || t.isBlank()) continue;
+            byType.computeIfAbsent(t, k -> new ArrayList<>()).add(p.getId());
+        }
+        Map<String, Set<Long>> testCases = new LinkedHashMap<>();
+        byType.forEach((type, ids) -> testCases.put(type, new HashSet<>(ids)));
+        if (testCases.isEmpty()) return ApiResponse.success(Map.of("topK", topK, "testCases", 0));
+        RagEvaluator.EvalResult r = ragEvaluator.evaluate(testCases, topK);
+        Map<String, Object> m = Map.of("recall1", r.getRecallAt1(), "recall3", r.getRecallAt3(),
+                "recall5", r.getRecallAt5(), "recall10", r.getRecallAt10(), "mrr", r.getMrr());
+        return ApiResponse.success(Map.of("topK", topK, "metrics", m, "testCases", testCases.size()));
     }
 
     // ==================== Monitoring ====================
