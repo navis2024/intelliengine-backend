@@ -82,6 +82,7 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui.html").permitAll()
                 // 市场模板列表 - 允许匿名访问
                 .requestMatchers("/v1/market/templates").permitAll()
+                .requestMatchers("/v1/agent/frames/*/thumbnail").permitAll()
                 // 其他路径 - 需要认证
                 .anyRequest().authenticated()
             )
