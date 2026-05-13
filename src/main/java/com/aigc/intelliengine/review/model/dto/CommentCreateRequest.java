@@ -21,4 +21,6 @@ public class CommentCreateRequest {
     private BigDecimal positionX;
     @Schema(description = "批注Y坐标")
     private BigDecimal positionY;
+    @Schema(description = "关联的视频帧号")
+    private Integer frameNumber;
 }

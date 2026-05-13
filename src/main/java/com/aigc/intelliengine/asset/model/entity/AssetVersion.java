@@ -15,6 +15,7 @@ public class AssetVersion {
     private Integer versionNumber;
     private String snapshotData;
     private String changeLog;
+    private String agentAdvice;
     private Long createdBy;
     private LocalDateTime createdAt;
 }

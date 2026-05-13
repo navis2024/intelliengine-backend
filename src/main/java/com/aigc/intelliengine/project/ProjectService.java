@@ -178,6 +178,33 @@ public class ProjectService {
         memberMapper.updateById(member);
     }
 
+    @Transactional
+    public void setGroupId(Long projectId, String groupId, Long userId) {
+        ProjectInfo project = projectMapper.selectById(projectId);
+        if (project == null) throw new BusinessException("项目不存在");
+        if (!project.getOwnerId().equals(userId))
+            throw new BusinessException(403, "只有项目所有者可以设置组ID");
+        project.setGroupId(groupId);
+        project.setUpdatedAt(LocalDateTime.now());
+        projectMapper.updateById(project);
+    }
+
+    @Transactional
+    public void joinByGroupId(String groupId, Long userId) {
+        if (groupId == null || groupId.isBlank()) throw new BusinessException("组ID不能为空");
+        ProjectInfo project = projectMapper.selectByGroupId(groupId);
+        if (project == null) throw new BusinessException("未找到该组ID对应的项目");
+        LambdaQueryWrapper<ProjectMember> w = new LambdaQueryWrapper<>();
+        w.eq(ProjectMember::getProjectId, project.getId()).eq(ProjectMember::getUserId, userId);
+        if (memberMapper.selectCount(w) > 0) throw new BusinessException("您已是该项目成员");
+        ProjectMember member = new ProjectMember();
+        member.setProjectId(project.getId());
+        member.setUserId(userId);
+        member.setRole("MEMBER");
+        member.setJoinedAt(LocalDateTime.now());
+        memberMapper.insert(member);
+    }
+
     private void checkOwner(Long projectId, Long userId) {
         ProjectInfo project = projectMapper.selectById(projectId);
         if (project == null) throw new BusinessException("项目不存在");

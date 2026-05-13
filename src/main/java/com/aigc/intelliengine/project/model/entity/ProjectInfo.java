@@ -19,6 +19,7 @@ public class ProjectInfo {
     private Long ownerId;
     private String status;
     private String visibility;
+    private String groupId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     @TableLogic(value = "0", delval = "1")

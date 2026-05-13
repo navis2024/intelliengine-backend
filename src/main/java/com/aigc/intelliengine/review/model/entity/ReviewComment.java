@@ -20,6 +20,7 @@ public class ReviewComment {
     private BigDecimal timestamp;
     private BigDecimal positionX;
     private BigDecimal positionY;
+    private Integer frameNumber;
     private String status;
     private Long createdBy;
     private LocalDateTime createdAt;

@@ -17,6 +17,7 @@ public class ReviewCommentVO {
     @Schema(description = "时间戳") private BigDecimal timestamp;
     @Schema(description = "X坐标") private BigDecimal positionX;
     @Schema(description = "Y坐标") private BigDecimal positionY;
+    @Schema(description = "关联帧号") private Integer frameNumber;
     @Schema(description = "状态") private String status;
     @Schema(description = "创建者ID") private String createdBy;
     @Schema(description = "创建者用户名") private String username;

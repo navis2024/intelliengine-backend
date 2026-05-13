@@ -16,14 +16,21 @@ import com.aigc.intelliengine.project.model.entity.ProjectMember;
 import com.aigc.intelliengine.review.ReviewCommentMapper;
 import com.aigc.intelliengine.review.model.entity.ReviewComment;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -44,6 +51,7 @@ public class AiVideoService {
     private final VideoFrameExtractionService frameExtractionService;
     private final VisionAnalysisService visionAnalysisService;
     private final FileStorageService fileStorageService;
+    private final LlmConfig llmConfig;
     private final RabbitTemplate rabbitTemplate;
 
     public AssetAiVideo findByAssetId(Long assetId, Long userId) {
@@ -172,68 +180,97 @@ public class AiVideoService {
                         .eq(ReviewComment::getAssetId, video.getAssetId())
                         .eq(ReviewComment::getIsDeleted, 0));
 
-        // Build enhancement prompt from review comments and frame data
-        StringBuilder ctx = new StringBuilder();
-        ctx.append("Current prompt: ").append(video.getPromptText()).append("\n");
-        if (frames.size() > 0) {
-            ctx.append("Frame count: ").append(frames.size()).append("\n");
+        StringBuilder prompt = new StringBuilder();
+        prompt.append("You are an expert AIGC video production advisor. Review this project and suggest improvements.\n\n");
+        prompt.append("=== MAIN PROMPT ===\n").append(video.getPromptText()).append("\n\n");
+
+        if (!frames.isEmpty()) {
+            prompt.append("=== FRAME DESCRIPTIONS ===\n");
             for (VideoFrame f : frames) {
-                if (f.getPromptText() != null) ctx.append("  Frame ").append(f.getFrameNumber())
-                        .append(": ").append(f.getPromptText()).append("\n");
+                prompt.append("Frame #").append(f.getFrameNumber()).append(" [").append(f.getTimestamp()).append("s]: ")
+                      .append(f.getPromptText() != null ? f.getPromptText() : "(no description)").append("\n");
             }
+            prompt.append("\n");
         }
+
         if (!comments.isEmpty()) {
-            ctx.append("Review comments:\n");
+            prompt.append("=== REVIEW COMMENTS ===\n");
             for (ReviewComment c : comments) {
-                ctx.append("  - ").append(c.getContent()).append("\n");
+                prompt.append("- [").append(c.getCommentType()).append("] ").append(c.getContent());
+                if (c.getFrameNumber() != null) prompt.append(" [frame ").append(c.getFrameNumber()).append("]");
+                prompt.append("\n");
             }
+            prompt.append("\n");
         }
-        ctx.append("\nSuggest an improved version of the main prompt incorporating review feedback.");
 
-        String improvedPrompt;
+        prompt.append("=== TASK ===\n");
+        prompt.append("1. Analyze what needs improvement based on review feedback\n");
+        prompt.append("2. Write an optimized version of the main prompt\n");
+        prompt.append("3. List 3-5 actionable suggestions for the next version\n");
+        prompt.append("Respond ONLY as JSON (no markdown fences):\n");
+        prompt.append("{\"analysis\":\"...\",\"improvedPrompt\":\"...\",\"suggestions\":[\"s1\",\"s2\"],\"priorityAreas\":[\"a1\"],\"confidence\":0.85}");
+
+        String agentAdvice, improvedPrompt;
         try {
-            if (frames.size() > 0) {
-                AnalysisResult result = promptAnalysisService.analyzeFrame(frames.get(0));
-                improvedPrompt = result.getAnalyzedPrompt();
-            } else {
-                improvedPrompt = video.getPromptText() + " [refined with agent suggestions]";
-            }
+            String llmResp = callLlmForAdvice(prompt.toString());
+            String content = new ObjectMapper().readTree(llmResp)
+                    .path("choices").get(0).path("message").path("content").asText();
+            if (content.startsWith("```json")) content = content.substring(7, content.length() - 3).trim();
+            else if (content.startsWith("```")) content = content.substring(3, content.length() - 3).trim();
+            agentAdvice = content;
+            improvedPrompt = new ObjectMapper().readTree(content).path("improvedPrompt").asText(video.getPromptText());
         } catch (Exception e) {
-            log.warn("LLM analysis failed, using basic enhancement: {}", e.getMessage());
-            improvedPrompt = video.getPromptText() + " [enhanced: improved lighting, color grading, 8K upscale]";
+            log.warn("LLM call failed for generateNextVersion: {}", e.getMessage());
+            improvedPrompt = video.getPromptText() + " [AI-enhanced]";
+            agentAdvice = "{\"analysis\":\"LLM unavailable\",\"improvedPrompt\":\"" +
+                    improvedPrompt.replace("\"", "'") + "\",\"suggestions\":[],\"confidence\":0.5}";
         }
 
-        // Create new asset version with enhanced parameters
         AssetInfo asset = assetMapper.selectById(video.getAssetId());
         if (asset != null) {
             int nextVersion = (asset.getVersion() != null ? asset.getVersion() : 1) + 1;
             asset.setVersion(nextVersion);
-            asset.setCommitMessage("AI-enhanced version: " + (comments.size()) + " reviews incorporated");
+            asset.setCommitMessage("AI-enhanced v" + nextVersion);
             asset.setUpdatedAt(LocalDateTime.now());
             assetMapper.updateById(asset);
 
             AssetVersion ver = new AssetVersion();
             ver.setAssetId(asset.getId());
             ver.setVersionNumber(nextVersion);
-            ver.setChangeLog("AI generate next version — " + comments.size() + " review comments incorporated");
+            ver.setChangeLog("Agent generated version — " + comments.size() + " reviews incorporated");
             ver.setSnapshotData("{\"prompt\":\"" + improvedPrompt.replace("\"", "'") + "\"}");
+            ver.setAgentAdvice(agentAdvice);
             ver.setCreatedBy(userId);
             ver.setCreatedAt(LocalDateTime.now());
             assetVersionMapper.insert(ver);
         }
 
-        // Update AI video with improved prompt
         video.setPromptText(improvedPrompt);
         aiVideoMapper.updateById(video);
 
         return Map.of(
-                "videoId", videoId,
-                "assetId", video.getAssetId(),
-                "newPrompt", improvedPrompt,
+                "videoId", videoId, "assetId", video.getAssetId(),
+                "newPrompt", improvedPrompt, "agentAdvice", agentAdvice,
                 "version", asset != null ? asset.getVersion() : 1,
-                "commentsIncorporated", comments.size(),
-                "framesAnalyzed", frames.size()
-        );
+                "commentsIncorporated", comments.size(), "framesAnalyzed", frames.size());
+    }
+
+    private String callLlmForAdvice(String userPrompt) {
+        RestTemplate rt = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + llmConfig.getApiKey());
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("model", llmConfig.getModel());
+        body.put("temperature", llmConfig.getTemperature());
+        body.put("max_tokens", llmConfig.getMaxTokens());
+        body.put("messages", List.of(
+                Map.of("role", "system", "content", "You are an expert AIGC video production assistant. Respond with valid JSON only."),
+                Map.of("role", "user", "content", userPrompt)));
+        ResponseEntity<String> resp = rt.postForEntity(
+                llmConfig.getBaseUrl() + "/chat/completions", new HttpEntity<>(body, headers), String.class);
+        if (resp.getStatusCode().is2xxSuccessful() && resp.getBody() != null) return resp.getBody();
+        throw new RuntimeException("LLM API returned " + resp.getStatusCode());
     }
 
     public String getThumbnailPresignedUrl(String objectPath) {

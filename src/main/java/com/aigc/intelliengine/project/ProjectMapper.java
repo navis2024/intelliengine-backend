@@ -11,4 +11,7 @@ import java.util.List;
 public interface ProjectMapper extends BaseMapper<ProjectInfo> {
     @Select("SELECT * FROM project_info WHERE owner_id = #{ownerId} AND is_deleted = 0 ORDER BY created_at DESC")
     List<ProjectInfo> selectByOwner(@Param("ownerId") Long ownerId);
+
+    @Select("SELECT * FROM project_info WHERE group_id = #{groupId} AND is_deleted = 0 LIMIT 1")
+    ProjectInfo selectByGroupId(@Param("groupId") String groupId);
 }

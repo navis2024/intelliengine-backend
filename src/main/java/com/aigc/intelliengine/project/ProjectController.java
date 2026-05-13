@@ -3,6 +3,7 @@ package com.aigc.intelliengine.project;
 import com.aigc.intelliengine.common.model.ApiResponse;
 import com.aigc.intelliengine.common.model.PageResult;
 import com.aigc.intelliengine.common.security.UserContextHolder;
+import com.aigc.intelliengine.project.model.dto.JoinByGroupIdRequest;
 import com.aigc.intelliengine.project.model.dto.ProjectCreateRequest;
 import com.aigc.intelliengine.project.model.dto.ProjectUpdateRequest;
 import com.aigc.intelliengine.project.model.entity.ProjectMember;
@@ -88,6 +89,20 @@ public class ProjectController {
     @Operation(summary = "更新成员角色")
     public ApiResponse<Void> updateMemberRole(@PathVariable Long id, @PathVariable Long userId, @RequestParam String role) {
         projectService.updateMemberRole(id, userId, role, UserContextHolder.getCurrentUserId());
+        return ApiResponse.success();
+    }
+
+    @PutMapping("/{id}/group-id")
+    @Operation(summary = "设置项目组ID")
+    public ApiResponse<Void> setGroupId(@PathVariable Long id, @RequestParam String groupId) {
+        projectService.setGroupId(id, groupId, UserContextHolder.getCurrentUserId());
+        return ApiResponse.success();
+    }
+
+    @PostMapping("/join")
+    @Operation(summary = "通过组ID加入项目")
+    public ApiResponse<Void> joinByGroupId(@Valid @RequestBody JoinByGroupIdRequest request) {
+        projectService.joinByGroupId(request.getGroupId(), UserContextHolder.getCurrentUserId());
         return ApiResponse.success();
     }
 }

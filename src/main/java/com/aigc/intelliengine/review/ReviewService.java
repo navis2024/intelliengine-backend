@@ -33,6 +33,7 @@ public class ReviewService {
         comment.setTimestamp(request.getTimestamp());
         comment.setPositionX(request.getPositionX());
         comment.setPositionY(request.getPositionY());
+        comment.setFrameNumber(request.getFrameNumber());
         comment.setCommentType("COMMENT");
         comment.setStatus("PENDING");
         comment.setCreatedBy(userId);
@@ -115,6 +116,7 @@ public class ReviewService {
         vo.setTimestamp(c.getTimestamp());
         vo.setPositionX(c.getPositionX());
         vo.setPositionY(c.getPositionY());
+        vo.setFrameNumber(c.getFrameNumber());
         vo.setStatus(c.getStatus());
         vo.setCreatedBy(String.valueOf(c.getCreatedBy()));
         vo.setCreatedAt(c.getCreatedAt());

@@ -1,0 +1,1 @@
+ALTER TABLE project_info ADD COLUMN group_id VARCHAR(50) DEFAULT NULL COMMENT '组ID' AFTER visibility;
