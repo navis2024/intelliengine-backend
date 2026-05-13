@@ -82,21 +82,9 @@
       </div>
 
       <!-- Version Tree -->
-      <div v-else-if="activeTab==='Version Tree'" class="rounded border border-border bg-card p-8">
-        <h3 class="text-sm font-semibold mb-6">Version History</h3>
-        <div class="space-y-4">
-          <div v-for="v in versionTree" :key="v.version"
-            class="flex items-center gap-4 p-4 rounded border"
-            :class="v.current ? 'border-blue-500/40 bg-blue-500/5' : 'border-border'">
-            <div class="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-xs font-mono font-bold"
-              :class="v.current ? 'text-blue-400' : 'text-muted-foreground'">v{{ v.version }}</div>
-            <div class="flex-1">
-              <p class="text-sm font-medium">{{ v.title }}</p>
-              <p class="text-[10px] text-muted-foreground">{{ v.author }} · {{ v.time }}</p>
-            </div>
-            <button class="text-xs font-mono text-muted-foreground hover:text-foreground transition-colors">Rollback</button>
-          </div>
-        </div>
+      <div v-else-if="activeTab==='Version Tree'" class="rounded border border-border bg-card p-6">
+        <VersionTree :versions="versionTreeData" :loading="versionTreeLoading"
+          @select="onVersionSelect" />
       </div>
 
       <!-- Members -->
@@ -155,6 +143,8 @@ import { projectApi } from '@/api/project'
 import { assetApi } from '@/api/asset'
 import { agentApi } from '@/api/agent'
 import { Bot } from 'lucide-vue-next'
+import VersionTree from '@/components/VersionTree.vue'
+import { useRouter } from 'vue-router'
 
 const route = useRoute()
 const tabs = ['Overview', 'Version Tree', 'Members', 'Settings']
@@ -168,7 +158,24 @@ const newMemberId = ref('')
 const newMemberRole = ref('MEMBER')
 const linkedAssets = ref<any[]>([])
 const agentReportCount = ref(0)
-const fileInput = ref<HTMLInputElement | null>(null)
+const router = useRouter()
+const versionTreeData = ref<any[]>([])
+const versionTreeLoading = ref(false)
+
+async function loadVersionTree() {
+  versionTreeLoading.value = true
+  try {
+    const assetId = linkedAssets.value[0]?.id
+    if (!assetId) { versionTreeLoading.value = false; return }
+    const versions = await assetApi.getAssetVersions(assetId)
+    versionTreeData.value = (versions || []).reverse()
+  } catch { versionTreeData.value = [] }
+  finally { versionTreeLoading.value = false }
+}
+
+function onVersionSelect(v: any) {
+  router.push(`/projects/${project.value.id}/draft?version=${v.versionNumber}`)
+}
 
 function handleAddVersion() { fileInput.value?.click() }
 
@@ -213,6 +220,8 @@ onMounted(async () => {
       const assets = await assetApi.listAssets({ ownerId: projectId, ownerType: 'PROJECT' })
       linkedAssets.value = (assets as any)?.list || []
     } catch {}
+
+    loadVersionTree()
 
     // Load agent reports for this project
     try {

@@ -196,7 +196,7 @@ import type { FrameAnalysisVO } from '@/types/agent'
 const route = useRoute()
 const projectId = route.params.id as string
 const projectName = ref('AI Short Drama')
-const currentVersion = ref(3)
+const currentVersion = ref(Number(route.query.version) || 3)
 const agentTool = ref('Runway Gen-3')
 const fps = ref(24)
 const editingPrompt = ref('cinematic wide shot, cyberpunk tea house interior, neon lights reflecting off polished wood, volumetric fog, shallow depth of field, 8K, photorealistic')
