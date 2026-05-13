@@ -156,6 +156,7 @@ public class ProjectService {
         vo.setOwnerName(owner != null ? owner.getUsername() : null);
         vo.setStatus(p.getStatus());
         vo.setVisibility(p.getVisibility());
+        vo.setGroupId(p.getGroupId());
         List<ProjectMember> members = memberMapper.selectByProject(p.getId());
         vo.setMemberCount(members.size());
         vo.setAssetCount(assetMapper.selectCount(

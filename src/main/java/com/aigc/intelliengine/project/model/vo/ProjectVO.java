@@ -16,6 +16,7 @@ public class ProjectVO {
     @Schema(description = "创建者名称") private String ownerName;
     @Schema(description = "项目状态") private String status;
     @Schema(description = "可见性") private String visibility;
+    @Schema(description = "组ID") private String groupId;
     @Schema(description = "成员数量") private Integer memberCount;
     @Schema(description = "资产数量") private Long assetCount;
     @Schema(description = "创建时间") private LocalDateTime createTime;
