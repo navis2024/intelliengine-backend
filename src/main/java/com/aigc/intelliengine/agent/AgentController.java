@@ -172,13 +172,17 @@ public class AgentController {
     }
 
     @GetMapping("/frames/{frameId}/thumbnail")
-    @Operation(summary = "获取帧缩略图（302重定向到新鲜预签名URL）")
+    @Operation(summary = "获取帧缩略图（直接流式返回JPEG，不走302）")
     public void getFrameThumbnail(@PathVariable Long frameId, jakarta.servlet.http.HttpServletResponse resp) throws java.io.IOException {
         VideoFrame frame = aiVideoService.findFrameById(frameId);
         if (frame == null || frame.getThumbnailUrl() == null) { resp.sendError(404); return; }
         String objectPath = "frames/" + frame.getVideoId() + "/thumb_" + frame.getFrameNumber() + ".jpg";
-        String fresh = aiVideoService.getThumbnailPresignedUrl(objectPath);
-        resp.sendRedirect(fresh != null ? fresh : frame.getThumbnailUrl());
+        byte[] imageBytes = aiVideoService.readThumbnailBytes(objectPath);
+        if (imageBytes == null) { resp.sendError(404); return; }
+        resp.setContentType("image/jpeg");
+        resp.setContentLength(imageBytes.length);
+        resp.setHeader("Cache-Control", "public, max-age=3600");
+        resp.getOutputStream().write(imageBytes);
     }
 
     @PostMapping("/videos/{videoId}/extract-frames")

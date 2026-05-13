@@ -281,6 +281,24 @@ public class AiVideoService {
         return fileStorageService.getPresignedUrl(objectPath);
     }
 
+    public byte[] readThumbnailBytes(String objectPath) {
+        try {
+            String presigned = fileStorageService.getPresignedUrl(objectPath);
+            if (presigned == null) return null;
+            java.net.URL url = new java.net.URL(presigned);
+            try (java.io.InputStream is = url.openStream();
+                 java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream()) {
+                byte[] buf = new byte[8192];
+                int n;
+                while ((n = is.read(buf)) != -1) baos.write(buf, 0, n);
+                return baos.toByteArray();
+            }
+        } catch (Exception e) {
+            log.warn("Failed to read thumbnail {}: {}", objectPath, e.getMessage());
+            return null;
+        }
+    }
+
     public int triggerFrameExtraction(Long videoId, Long userId) {
         AssetAiVideo video = aiVideoMapper.selectById(videoId);
         if (video == null) throw new BusinessException("AI视频元数据不存在");
