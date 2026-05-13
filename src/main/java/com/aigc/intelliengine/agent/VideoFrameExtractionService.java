@@ -86,7 +86,6 @@ public class VideoFrameExtractionService {
                 "-r", "0.5",
                 "-vf", "scale=" + THUMBNAIL_WIDTH + ":-1",
                 "-q:v", "2",
-                "-vsync", "vfr",
                 "-frames:v", String.valueOf(MAX_FRAMES),
                 "-y",
                 outputPattern
