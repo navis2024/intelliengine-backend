@@ -83,9 +83,10 @@ public class VideoFrameExtractionService {
         List<String> cmd = Arrays.asList(
                 ffmpeg,
                 "-i", videoUrl,
-                "-vf", "fps=0.5,scale=" + THUMBNAIL_WIDTH + ":-1",
+                "-r", "0.5",
+                "-vf", "scale=" + THUMBNAIL_WIDTH + ":-1",
                 "-q:v", "2",
-                "-frame_pts", "1",
+                "-vsync", "vfr",
                 "-frames:v", String.valueOf(MAX_FRAMES),
                 "-y",
                 outputPattern
@@ -124,7 +125,7 @@ public class VideoFrameExtractionService {
 
         int count = 0;
         for (int i = 0; i < files.length && count < MAX_FRAMES; i++) {
-            double timestamp = i < timestamps.size() ? timestamps.get(i) : (count * 1.0);
+            double timestamp = i < timestamps.size() ? timestamps.get(i) : (count * 2.0);
             int frameNum = (int) Math.round(timestamp * fps);
 
             // Upload thumbnail to MinIO
