@@ -1,0 +1,13 @@
+UPDATE video_frame SET prompt_text = '中景特写，狐面人物黑衣端坐云海，手持长烟斗吐粉雾，背景赤日，黑红撞色，诡谲东方美学。' WHERE video_id=5 AND frame_number=0;
+UPDATE video_frame SET prompt_text = '中景，狐面神怪端坐云间，手持烟斗，红日背景，黑红主调，粉雾缭绕，东方奇幻风格。' WHERE video_id=5 AND frame_number=48;
+UPDATE video_frame SET prompt_text = '中景，狐面人端坐云海，手持烟斗，胸口绽红光，身后赤日悬空，紫烟缭绕，红黑对比，诡谲妖异。' WHERE video_id=5 AND frame_number=96;
+UPDATE video_frame SET prompt_text = '近景，奇幻神话场景，面具人物坐于云雾中吸烟，胸前红光流转，红日高悬，白狐卧伏，红黑基调。' WHERE video_id=5 AND frame_number=144;
+UPDATE video_frame SET prompt_text = '近景特写，东方志怪场景，白狐仙为主体，红瞳持烟斗，衣黑尾白，粉紫烟雾缭绕。' WHERE video_id=5 AND frame_number=192;
+UPDATE video_frame SET prompt_text = '近景特写，古风幻境，白衣人与巨白狐触额相对，红底白雾缭绕，粉白暖色调，柔光梦幻氛围。' WHERE video_id=5 AND frame_number=240;
+UPDATE video_frame SET prompt_text = '近景平视，东方奇幻水境，白衣女子与巨型白狐对视，烟雾缭绕，红暗背景，色调瑰丽神秘。' WHERE video_id=5 AND frame_number=288;
+UPDATE video_frame SET prompt_text = '近景特写，白狐面具人物为主体，周围漂浮莲花与流云，光线柔和神秘，粉紫色调梦幻唯美。' WHERE video_id=5 AND frame_number=336;
+UPDATE video_frame SET prompt_text = '特写，狐面人形，白毛金冠，红瞳黑袍，抬手施法，粉雾莲花环绕，柔光梦幻，紫粉色调。' WHERE video_id=5 AND frame_number=384;
+UPDATE video_frame SET prompt_text = '全景，东方玄幻场景，黑犬首神祇盘坐水中央，红日高悬，紫烟缭绕，黑红配色，神秘庄重。' WHERE video_id=5 AND frame_number=480;
+UPDATE video_frame SET prompt_text = '特写镜头，幻想场景，戴红黑头饰的人物居中，四周环绕白色狐面，夕阳逆光，红紫色调对比强烈。' WHERE video_id=5 AND frame_number=528;
+UPDATE video_frame SET prompt_text = '黑场画面，中央有白色文字水印，无可见主体，极低照度，纯黑背景。' WHERE video_id=5 AND frame_number=576;
+UPDATE video_frame SET prompt_text = '特写，纯黑背景中悬浮蓝白发光星形光斑，高对比暗调，冷色调，底部有白色文字标识。' WHERE video_id=5 AND frame_number=624;

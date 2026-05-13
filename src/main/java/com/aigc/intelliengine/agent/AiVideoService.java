@@ -49,7 +49,6 @@ public class AiVideoService {
     private final ReviewCommentMapper reviewCommentMapper;
     private final PromptAnalysisService promptAnalysisService;
     private final VideoFrameExtractionService frameExtractionService;
-    private final VisionAnalysisService visionAnalysisService;
     private final FileStorageService fileStorageService;
     private final LlmConfig llmConfig;
     private final RabbitTemplate rabbitTemplate;
@@ -329,26 +328,62 @@ public class AiVideoService {
         int analyzed = 0;
         for (VideoFrame f : frames) {
             if (f.getThumbnailUrl() != null) {
-                // Extract MinIO object path from presigned URL
-                // URL: http://localhost:9000/bucket/frames/5/thumb_0.jpg?params...
-                String url = f.getThumbnailUrl();
-                int pathStart = url.indexOf('/', 10); // skip http://localhost:9000/
-                String fullPath = pathStart > 0 ? url.substring(pathStart + 1).split("\\?")[0] : url;
-                int bucketEnd = fullPath.indexOf('/');
-                String objectPath = bucketEnd > 0 ? fullPath.substring(bucketEnd + 1) : fullPath;
-                String ctx = "帧#" + f.getFrameNumber() + " 时间" + f.getTimestamp() + "秒";
-                String desc = visionAnalysisService.analyzeFrame(objectPath, ctx);
-                if (desc != null && !desc.isBlank()) {
-                    f.setPromptText(desc.trim());
-                    videoFrameMapper.updateById(f);
-                    analyzed++;
-                    log.info("Vision analyzed frame #{}: {}", f.getFrameNumber(), desc.substring(0, 50));
+                String objectPath = "frames/" + videoId + "/thumb_" + f.getFrameNumber() + ".jpg";
+                byte[] imgBytes = readThumbnailBytes(objectPath);
+                if (imgBytes != null && imgBytes.length > 100) {
+                    String base64 = java.util.Base64.getEncoder().encodeToString(imgBytes);
+                    String desc = callVisionApi(base64, f.getFrameNumber(), f.getTimestamp());
+                    if (desc != null && !desc.isBlank()) {
+                        f.setPromptText(desc.trim());
+                        videoFrameMapper.updateById(f);
+                        analyzed++;
+                        log.info("Vision analyzed frame #{}: {}", f.getFrameNumber(), desc.substring(0, Math.min(50, desc.length())));
+                    }
                 }
-                // Small delay between frames to avoid rate limiting
-                try { Thread.sleep(600); } catch (InterruptedException ignored) {}
+                try { Thread.sleep(800); } catch (InterruptedException ignored) {}
             }
         }
         return Map.of("videoId", videoId, "totalFrames", frames.size(), "analyzedFrames", analyzed);
+    }
+
+    private String callVisionApi(String base64Image, int frameNum, java.math.BigDecimal timestamp) {
+        try {
+            String ctx = "帧#" + frameNum + " 时间" + timestamp + "秒";
+            Map<String, Object> systemMsg = Map.of("role", "system", "content",
+                    "你是一个专业的视频画面分析助手。请用简洁的中文描述视频帧的画面内容，包括：镜头类型、场景、主体、光线、色调。50字以内。");
+            Map<String, Object> userMsg = Map.of("role", "user", "content", java.util.List.of(
+                    Map.of("type", "image_url", "image_url", Map.of("url", "data:image/jpeg;base64," + base64Image)),
+                    Map.of("type", "text", "text", "描述这个视频帧的画面内容(" + ctx + ")：")
+            ));
+            Map<String, Object> body = new LinkedHashMap<>();
+            body.put("model", llmConfig.getModel());
+            body.put("temperature", 1.0);
+            body.put("max_tokens", 500);
+            body.put("messages", java.util.List.of(systemMsg, userMsg));
+
+            RestTemplate rt = new RestTemplate();
+            rt.setRequestFactory(new org.springframework.http.client.SimpleClientHttpRequestFactory() {{
+                setConnectTimeout(30_000); setReadTimeout(120_000);
+            }});
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Authorization", "Bearer " + llmConfig.getApiKey());
+
+            ResponseEntity<String> resp = rt.postForEntity(
+                    llmConfig.getBaseUrl() + "/chat/completions",
+                    new HttpEntity<>(new ObjectMapper().writeValueAsString(body), headers), String.class);
+
+            if (resp.getStatusCode().is2xxSuccessful() && resp.getBody() != null) {
+                var root = new ObjectMapper().readTree(resp.getBody());
+                var msg = root.path("choices").get(0).path("message");
+                String content = msg.path("content").asText();
+                if (content.isBlank()) content = msg.path("reasoning_content").asText();
+                return content.isBlank() ? null : content.trim();
+            }
+        } catch (Exception e) {
+            log.warn("Vision API failed for frame #{}: {}", frameNum, e.getMessage());
+        }
+        return null;
     }
 
     @Transactional
