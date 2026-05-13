@@ -257,6 +257,10 @@ public class AiVideoService {
 
     private String callLlmForAdvice(String userPrompt) {
         RestTemplate rt = new RestTemplate();
+        rt.setRequestFactory(new org.springframework.http.client.SimpleClientHttpRequestFactory() {{
+            setConnectTimeout(30_000);
+            setReadTimeout(90_000);
+        }});
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Authorization", "Bearer " + llmConfig.getApiKey());
