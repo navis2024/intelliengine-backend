@@ -86,4 +86,10 @@ export const agentApi = {
   listTemplates(): Promise<any[]> {
     return request.get('/agent/templates')
   },
+  listTools(): Promise<{name:string;description:string;inputSchema:any}[]> {
+    return request.get('/agent/tools')
+  },
+  reindexPrompts(): Promise<any> {
+    return request.post('/agent/prompts/reindex')
+  },
 }
