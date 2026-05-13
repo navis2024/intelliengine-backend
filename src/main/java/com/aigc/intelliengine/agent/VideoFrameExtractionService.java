@@ -38,7 +38,7 @@ public class VideoFrameExtractionService {
     @Value("${ffmpeg.path:}")
     private String configuredFfmpegPath;
 
-    private static final int MAX_FRAMES = 20;
+    private static final int MAX_FRAMES = 50;
     private static final int THUMBNAIL_WIDTH = 320;
 
     private volatile String ffmpegPath;

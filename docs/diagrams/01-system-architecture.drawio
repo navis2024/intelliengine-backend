@@ -1,149 +1,132 @@
-<mxfile host="app.diagrams.net" modified="2026-05-10T00:00:00.000Z" agent="IntelliEngine" version="21.0.0">
+<mxfile host="app.diagrams.net" agent="IntelliEngine">
   <diagram name="系统总体架构" id="sys-arch">
-    <mxGraphModel dx="1200" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="1000">
+    <mxGraphModel dx="1207" dy="1111" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="1000" math="0" shadow="0">
       <root>
-        <mxCell id="0"/>
-        <mxCell id="1" parent="0"/>
-
-        <!-- ===== 用户层 ===== -->
-        <mxCell id="user-layer" value="用户层" style="swimlane;startSize=30;fillColor=#e3f2fd;strokeColor=#1565c0;fontStyle=1;fontSize=13;" vertex="1" parent="1">
-          <mxGeometry x="40" y="40" width="1320" height="120" as="geometry"/>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="user-layer" parent="1" style="swimlane;startSize=30;fillColor=#e3f2fd;strokeColor=#1565c0;fontStyle=1;fontSize=13;" value="用户层" vertex="1">
+          <mxGeometry height="120" width="1320" x="40" y="40" as="geometry" />
         </mxCell>
-        <mxCell id="browser" value="&lt;b&gt;浏览器&lt;/b&gt;&lt;br&gt;Vue 3 + TypeScript&lt;br&gt;Tailwind CSS + Pinia" style="rounded=1;fillColor=#ffffff;strokeColor=#1976d2;fontSize=11;" vertex="1" parent="user-layer">
-          <mxGeometry x="100" y="40" width="180" height="60" as="geometry"/>
+        <mxCell id="browser" parent="user-layer" style="rounded=1;fillColor=#ffffff;strokeColor=#1976d2;fontSize=11;" value="&lt;b&gt;浏览器&lt;/b&gt;&lt;br&gt;Vue 3 + TypeScript&lt;br&gt;Tailwind CSS + Pinia" vertex="1">
+          <mxGeometry height="60" width="180" x="100" y="40" as="geometry" />
         </mxCell>
-        <mxCell id="api-caller" value="&lt;b&gt;第三方调用&lt;/b&gt;&lt;br&gt;OpenAI API&lt;br&gt;MinIO SDK" style="rounded=1;fillColor=#ffffff;strokeColor=#1976d2;fontSize=11;" vertex="1" parent="user-layer">
-          <mxGeometry x="1000" y="40" width="180" height="60" as="geometry"/>
+        <mxCell id="api-caller" parent="user-layer" style="rounded=1;fillColor=#ffffff;strokeColor=#1976d2;fontSize=11;" value="&lt;b&gt;第三方调用&lt;/b&gt;&lt;br&gt;OpenAI API&lt;br&gt;MinIO SDK" vertex="1">
+          <mxGeometry height="60" width="180" x="1000" y="40" as="geometry" />
         </mxCell>
-
-        <!-- ===== 网关层 ===== -->
-        <mxCell id="gateway-layer" value="网关层" style="swimlane;startSize=30;fillColor=#fff3e0;strokeColor=#e65100;fontStyle=1;fontSize=13;" vertex="1" parent="1">
-          <mxGeometry x="40" y="180" width="1320" height="100" as="geometry"/>
+        <mxCell id="gateway-layer" parent="1" style="swimlane;startSize=30;fillColor=#fff3e0;strokeColor=#e65100;fontStyle=1;fontSize=13;" value="网关层" vertex="1">
+          <mxGeometry height="100" width="1320" x="40" y="180" as="geometry" />
         </mxCell>
-        <mxCell id="nginx" value="&lt;b&gt;Nginx :80&lt;/b&gt;&lt;br&gt;反向代理 / 静态资源&lt;br&gt;/api → backend :8081" style="rounded=1;fillColor=#ffffff;strokeColor=#ef6c00;fontSize=11;" vertex="1" parent="gateway-layer">
-          <mxGeometry x="400" y="40" width="220" height="50" as="geometry"/>
+        <mxCell id="nginx" parent="gateway-layer" style="rounded=1;fillColor=#ffffff;strokeColor=#ef6c00;fontSize=11;" value="&lt;b&gt;Nginx :80&lt;/b&gt;&lt;br&gt;反向代理 / 静态资源&lt;br&gt;/api → backend :8081" vertex="1">
+          <mxGeometry height="50" width="220" x="400" y="40" as="geometry" />
         </mxCell>
-        <mxCell id="spring-security" value="&lt;b&gt;Spring Security + JWT&lt;/b&gt;&lt;br&gt;认证 / 鉴权 / Token黑名单" style="rounded=1;fillColor=#ffffff;strokeColor=#ef6c00;fontSize=11;" vertex="1" parent="gateway-layer">
-          <mxGeometry x="700" y="40" width="220" height="50" as="geometry"/>
+        <mxCell id="spring-security" parent="gateway-layer" style="rounded=1;fillColor=#ffffff;strokeColor=#ef6c00;fontSize=11;" value="&lt;b&gt;Spring Security + JWT&lt;/b&gt;&lt;br&gt;认证 / 鉴权 / Token黑名单" vertex="1">
+          <mxGeometry height="50" width="220" x="700" y="40" as="geometry" />
         </mxCell>
-
-        <!-- ===== 业务层 ===== -->
-        <mxCell id="biz-layer" value="业务层 — COLA 分层架构" style="swimlane;startSize=30;fillColor=#e8f5e9;strokeColor=#2e7d32;fontStyle=1;fontSize=13;" vertex="1" parent="1">
-          <mxGeometry x="40" y="300" width="1320" height="200" as="geometry"/>
+        <mxCell id="biz-layer" parent="1" style="swimlane;startSize=30;fillColor=#e8f5e9;strokeColor=#2e7d32;fontStyle=1;fontSize=13;" value="业务层 — COLA 分层架构" vertex="1">
+          <mxGeometry height="200" width="1320" x="40" y="300" as="geometry" />
         </mxCell>
-        <mxCell id="mod-user" value="&lt;b&gt;user&lt;/b&gt;&lt;br&gt;注册/登录&lt;br&gt;信息管理&lt;br&gt;ThreadLocal会话" style="rounded=1;fillColor=#ffffff;strokeColor=#43a047;fontSize=10;" vertex="1" parent="biz-layer">
-          <mxGeometry x="30" y="45" width="135" height="70" as="geometry"/>
+        <mxCell id="mod-user" parent="biz-layer" style="rounded=1;fillColor=#ffffff;strokeColor=#43a047;fontSize=10;" value="&lt;b&gt;user&lt;/b&gt;&lt;br&gt;注册/登录&lt;br&gt;信息管理&lt;br&gt;ThreadLocal会话" vertex="1">
+          <mxGeometry height="70" width="135" x="30" y="45" as="geometry" />
         </mxCell>
-        <mxCell id="mod-project" value="&lt;b&gt;project&lt;/b&gt;&lt;br&gt;CRUD/成员管理&lt;br&gt;权限校验&lt;br&gt;join/组成员" style="rounded=1;fillColor=#ffffff;strokeColor=#43a047;fontSize=10;" vertex="1" parent="biz-layer">
-          <mxGeometry x="180" y="45" width="135" height="70" as="geometry"/>
+        <mxCell id="mod-project" parent="biz-layer" style="rounded=1;fillColor=#ffffff;strokeColor=#43a047;fontSize=10;" value="&lt;b&gt;project&lt;/b&gt;&lt;br&gt;CRUD/成员管理&lt;br&gt;权限校验&lt;br&gt;join/组成员" vertex="1">
+          <mxGeometry height="70" width="135" x="180" y="45" as="geometry" />
         </mxCell>
-        <mxCell id="mod-asset" value="&lt;b&gt;asset&lt;/b&gt;&lt;br&gt;上传/版本控制&lt;br&gt;MinIO存储&lt;br&gt;linkToProject" style="rounded=1;fillColor=#ffffff;strokeColor=#43a047;fontSize=10;" vertex="1" parent="biz-layer">
-          <mxGeometry x="330" y="45" width="135" height="70" as="geometry"/>
+        <mxCell id="mod-asset" parent="biz-layer" style="rounded=1;fillColor=#ffffff;strokeColor=#43a047;fontSize=10;" value="&lt;b&gt;asset&lt;/b&gt;&lt;br&gt;上传/版本控制&lt;br&gt;MinIO存储&lt;br&gt;linkToProject" vertex="1">
+          <mxGeometry height="70" width="135" x="330" y="45" as="geometry" />
         </mxCell>
-        <mxCell id="mod-review" value="&lt;b&gt;review&lt;/b&gt;&lt;br&gt;按帧批注&lt;br&gt;评论/回复&lt;br&gt;状态流转" style="rounded=1;fillColor=#ffffff;strokeColor=#43a047;fontSize=10;" vertex="1" parent="biz-layer">
-          <mxGeometry x="480" y="45" width="135" height="70" as="geometry"/>
+        <mxCell id="mod-review" parent="biz-layer" style="rounded=1;fillColor=#ffffff;strokeColor=#43a047;fontSize=10;" value="&lt;b&gt;review&lt;/b&gt;&lt;br&gt;按帧批注&lt;br&gt;评论/回复&lt;br&gt;状态流转" vertex="1">
+          <mxGeometry height="70" width="135" x="480" y="45" as="geometry" />
         </mxCell>
-        <mxCell id="mod-market" value="&lt;b&gt;market&lt;/b&gt;&lt;br&gt;模板发布/购买&lt;br&gt;收藏/订单&lt;br&gt;布隆防重复" style="rounded=1;fillColor=#ffffff;strokeColor=#43a047;fontSize=10;" vertex="1" parent="biz-layer">
-          <mxGeometry x="630" y="45" width="135" height="70" as="geometry"/>
+        <mxCell id="mod-market" parent="biz-layer" style="rounded=1;fillColor=#ffffff;strokeColor=#43a047;fontSize=10;" value="&lt;b&gt;market&lt;/b&gt;&lt;br&gt;模板发布/购买&lt;br&gt;收藏/订单&lt;br&gt;布隆防重复" vertex="1">
+          <mxGeometry height="70" width="135" x="630" y="45" as="geometry" />
         </mxCell>
-        <mxCell id="mod-agent" value="&lt;b&gt;agent ★&lt;/b&gt;&lt;br&gt;AI视频元数据&lt;br&gt;Prompt库+RAG&lt;br&gt;ReAct/多Agent" style="rounded=1;fillColor=#c8e6c9;strokeColor=#2e7d32;fontSize=10;fontStyle=1;" vertex="1" parent="biz-layer">
-          <mxGeometry x="780" y="45" width="150" height="70" as="geometry"/>
+        <mxCell id="mod-agent" parent="biz-layer" style="rounded=1;fillColor=#c8e6c9;strokeColor=#2e7d32;fontSize=10;fontStyle=1;" value="&lt;b&gt;agent ★&lt;/b&gt;&lt;br&gt;AI视频元数据&lt;br&gt;Prompt库+RAG&lt;br&gt;ReAct/多Agent" vertex="1">
+          <mxGeometry height="70" width="150" x="780" y="45" as="geometry" />
         </mxCell>
-        <mxCell id="mod-notify" value="&lt;b&gt;notification&lt;/b&gt;&lt;br&gt;站内消息" style="rounded=1;fillColor=#ffffff;strokeColor=#43a047;fontSize=10;" vertex="1" parent="biz-layer">
-          <mxGeometry x="945" y="45" width="110" height="70" as="geometry"/>
+        <mxCell id="mod-notify" parent="biz-layer" style="rounded=1;fillColor=#ffffff;strokeColor=#43a047;fontSize=10;" value="&lt;b&gt;notification&lt;/b&gt;&lt;br&gt;站内消息" vertex="1">
+          <mxGeometry height="70" width="110" x="945" y="45" as="geometry" />
         </mxCell>
-        <mxCell id="mod-common" value="&lt;b&gt;common&lt;/b&gt;&lt;br&gt;Redis/Cache&lt;br&gt;Security/Validator&lt;br&gt;Exception/Model" style="rounded=1;fillColor=#ffffff;strokeColor=#43a047;fontSize=10;" vertex="1" parent="biz-layer">
-          <mxGeometry x="1070" y="45" width="150" height="70" as="geometry"/>
+        <mxCell id="mod-common" parent="biz-layer" style="rounded=1;fillColor=#ffffff;strokeColor=#43a047;fontSize=10;" value="&lt;b&gt;common&lt;/b&gt;&lt;br&gt;Redis/Cache&lt;br&gt;Security/Validator&lt;br&gt;Exception/Model" vertex="1">
+          <mxGeometry height="70" width="150" x="1070" y="45" as="geometry" />
         </mxCell>
-
-        <!-- Agent 子模块展开 -->
-        <mxCell id="agent-detail" value="" style="rounded=1;fillColor=#f1f8e9;strokeColor=#558b2f;strokeWidth=1;dashed=1;" vertex="1" parent="biz-layer">
-          <mxGeometry x="780" y="120" width="500" height="70" as="geometry"/>
+        <mxCell id="agent-detail" parent="biz-layer" style="rounded=1;fillColor=#f1f8e9;strokeColor=#558b2f;strokeWidth=1;dashed=1;" value="" vertex="1">
+          <mxGeometry height="70" width="500" x="780" y="120" as="geometry" />
         </mxCell>
-        <mxCell id="agent-sub1" value="Prompt库+RAG语义检索" style="rounded=0;fillColor=#ffffff;strokeColor=#7cb342;fontSize=9;" vertex="1" parent="biz-layer">
-          <mxGeometry x="790" y="130" width="115" height="25" as="geometry"/>
+        <mxCell id="agent-sub1" parent="biz-layer" style="rounded=0;fillColor=#ffffff;strokeColor=#7cb342;fontSize=9;" value="Prompt库+RAG语义检索" vertex="1">
+          <mxGeometry height="25" width="115" x="790" y="130" as="geometry" />
         </mxCell>
-        <mxCell id="agent-sub2" value="ReAct Agent(Thought→Action→Obs)" style="rounded=0;fillColor=#ffffff;strokeColor=#7cb342;fontSize=9;" vertex="1" parent="biz-layer">
-          <mxGeometry x="910" y="130" width="130" height="25" as="geometry"/>
+        <mxCell id="agent-sub2" parent="biz-layer" style="rounded=0;fillColor=#ffffff;strokeColor=#7cb342;fontSize=9;" value="ReAct Agent(Thought→Action→Obs)" vertex="1">
+          <mxGeometry height="25" width="130" x="910" y="130" as="geometry" />
         </mxCell>
-        <mxCell id="agent-sub3" value="Supervisor+Worker+Auditor" style="rounded=0;fillColor=#ffffff;strokeColor=#7cb342;fontSize=9;" vertex="1" parent="biz-layer">
-          <mxGeometry x="1045" y="130" width="115" height="25" as="geometry"/>
+        <mxCell id="agent-sub3" parent="biz-layer" style="rounded=0;fillColor=#ffffff;strokeColor=#7cb342;fontSize=9;" value="Supervisor+Worker+Auditor" vertex="1">
+          <mxGeometry height="25" width="115" x="1045" y="130" as="geometry" />
         </mxCell>
-        <mxCell id="agent-sub4" value="LangChain4j(ChatMemory+Tool)" style="rounded=0;fillColor=#ffffff;strokeColor=#7cb342;fontSize=9;" vertex="1" parent="biz-layer">
-          <mxGeometry x="790" y="158" width="130" height="25" as="geometry"/>
+        <mxCell id="agent-sub4" parent="biz-layer" style="rounded=0;fillColor=#ffffff;strokeColor=#7cb342;fontSize=9;" value="LangChain4j(ChatMemory+Tool)" vertex="1">
+          <mxGeometry height="25" width="130" x="790" y="158" as="geometry" />
         </mxCell>
-        <mxCell id="agent-sub5" value="FFmpeg+RabbitMQ异步抽帧" style="rounded=0;fillColor=#ffffff;strokeColor=#7cb342;fontSize=9;" vertex="1" parent="biz-layer">
-          <mxGeometry x="925" y="158" width="120" height="25" as="geometry"/>
+        <mxCell id="agent-sub5" parent="biz-layer" style="rounded=0;fillColor=#ffffff;strokeColor=#7cb342;fontSize=9;" value="FFmpeg+RabbitMQ异步抽帧" vertex="1">
+          <mxGeometry height="25" width="120" x="925" y="158" as="geometry" />
         </mxCell>
-        <mxCell id="agent-sub6" value="Mock/OpenAI/LC4j三级策略" style="rounded=0;fillColor=#ffffff;strokeColor=#7cb342;fontSize=9;" vertex="1" parent="biz-layer">
-          <mxGeometry x="1050" y="158" width="120" height="25" as="geometry"/>
+        <mxCell id="agent-sub6" parent="biz-layer" style="rounded=0;fillColor=#ffffff;strokeColor=#7cb342;fontSize=9;" value="Mock/OpenAI/LC4j三级策略" vertex="1">
+          <mxGeometry height="25" width="120" x="1050" y="158" as="geometry" />
         </mxCell>
-
-        <!-- ===== 中间件层 ===== -->
-        <mxCell id="middleware-layer" value="中间件层" style="swimlane;startSize=30;fillColor=#fce4ec;strokeColor=#c62828;fontStyle=1;fontSize=13;" vertex="1" parent="1">
-          <mxGeometry x="40" y="520" width="1320" height="130" as="geometry"/>
+        <mxCell id="middleware-layer" parent="1" style="swimlane;startSize=30;fillColor=#fce4ec;strokeColor=#c62828;fontStyle=1;fontSize=13;" value="中间件层" vertex="1">
+          <mxGeometry height="130" width="1320" x="40" y="520" as="geometry" />
         </mxCell>
-        <mxCell id="mw-mysql" value="&lt;b&gt;MySQL 8.0&lt;/b&gt;&lt;br&gt;:3307&lt;br&gt;15张表" style="rounded=1;fillColor=#ffffff;strokeColor=#d32f2f;fontSize=11;" vertex="1" parent="middleware-layer">
-          <mxGeometry x="40" y="45" width="150" height="70" as="geometry"/>
+        <mxCell id="mw-mysql" parent="middleware-layer" style="rounded=1;fillColor=#ffffff;strokeColor=#d32f2f;fontSize=11;" value="&lt;b&gt;MySQL 8.0&lt;/b&gt;&lt;br&gt;:3307&lt;br&gt;15张表" vertex="1">
+          <mxGeometry height="70" width="150" x="40" y="45" as="geometry" />
         </mxCell>
-        <mxCell id="mw-redis" value="&lt;b&gt;Redis 7&lt;/b&gt;&lt;br&gt;缓存/锁/Session&lt;br&gt;限流/黑名单/布隆" style="rounded=1;fillColor=#ffffff;strokeColor=#d32f2f;fontSize=11;" vertex="1" parent="middleware-layer">
-          <mxGeometry x="220" y="45" width="175" height="70" as="geometry"/>
+        <mxCell id="mw-redis" parent="middleware-layer" style="rounded=1;fillColor=#ffffff;strokeColor=#d32f2f;fontSize=11;" value="&lt;b&gt;Redis 7&lt;/b&gt;&lt;br&gt;缓存/锁/Session&lt;br&gt;限流/黑名单/布隆" vertex="1">
+          <mxGeometry height="70" width="175" x="220" y="45" as="geometry" />
         </mxCell>
-        <mxCell id="mw-rabbit" value="&lt;b&gt;RabbitMQ 3.12&lt;/b&gt;&lt;br&gt;异步抽帧队列&lt;br&gt;DLQ死信+3次重试" style="rounded=1;fillColor=#ffffff;strokeColor=#d32f2f;fontSize=11;" vertex="1" parent="middleware-layer">
-          <mxGeometry x="425" y="45" width="175" height="70" as="geometry"/>
+        <mxCell id="mw-rabbit" parent="middleware-layer" style="rounded=1;fillColor=#ffffff;strokeColor=#d32f2f;fontSize=11;" value="&lt;b&gt;RabbitMQ 3.12&lt;/b&gt;&lt;br&gt;异步抽帧队列&lt;br&gt;DLQ死信+3次重试" vertex="1">
+          <mxGeometry height="70" width="175" x="425" y="45" as="geometry" />
         </mxCell>
-        <mxCell id="mw-minio" value="&lt;b&gt;MinIO&lt;/b&gt;&lt;br&gt;对象存储 :9000&lt;br&gt;bucket: jimeng" style="rounded=1;fillColor=#ffffff;strokeColor=#d32f2f;fontSize=11;" vertex="1" parent="middleware-layer">
-          <mxGeometry x="630" y="45" width="160" height="70" as="geometry"/>
+        <mxCell id="mw-minio" parent="middleware-layer" style="rounded=1;fillColor=#ffffff;strokeColor=#d32f2f;fontSize=11;" value="&lt;b&gt;MinIO&lt;/b&gt;&lt;br&gt;对象存储 :9000&lt;br&gt;bucket: jimeng" vertex="1">
+          <mxGeometry height="70" width="160" x="630" y="45" as="geometry" />
         </mxCell>
-        <mxCell id="mw-ffmpeg" value="&lt;b&gt;FFmpeg 8.1&lt;/b&gt;&lt;br&gt;I-frame提取&lt;br&gt;320px缩略图" style="rounded=1;fillColor=#ffffff;strokeColor=#d32f2f;fontSize=11;" vertex="1" parent="middleware-layer">
-          <mxGeometry x="820" y="45" width="150" height="70" as="geometry"/>
+        <mxCell id="mw-ffmpeg" parent="middleware-layer" style="rounded=1;fillColor=#ffffff;strokeColor=#d32f2f;fontSize=11;" value="&lt;b&gt;FFmpeg 8.1&lt;/b&gt;&lt;br&gt;I-frame提取&lt;br&gt;320px缩略图" vertex="1">
+          <mxGeometry height="70" width="150" x="820" y="45" as="geometry" />
         </mxCell>
-        <mxCell id="mw-caffeine" value="&lt;b&gt;Caffeine L1&lt;/b&gt;&lt;br&gt;本地缓存&lt;br&gt;10K/5min" style="rounded=1;fillColor=#ffffff;strokeColor=#d32f2f;fontSize=11;" vertex="1" parent="middleware-layer">
-          <mxGeometry x="1000" y="45" width="140" height="70" as="geometry"/>
+        <mxCell id="mw-caffeine" parent="middleware-layer" style="rounded=1;fillColor=#ffffff;strokeColor=#d32f2f;fontSize=11;" value="&lt;b&gt;Caffeine L1&lt;/b&gt;&lt;br&gt;本地缓存&lt;br&gt;10K/5min" vertex="1">
+          <mxGeometry height="70" width="140" x="1000" y="45" as="geometry" />
         </mxCell>
-        <mxCell id="mw-openai" value="&lt;b&gt;OpenAI API&lt;/b&gt;&lt;br&gt;GPT-4o-mini&lt;br&gt;LangChain4j" style="rounded=1;fillColor=#ffffff;strokeColor=#d32f2f;fontSize=11;" vertex="1" parent="middleware-layer">
-          <mxGeometry x="1165" y="45" width="130" height="70" as="geometry"/>
+        <mxCell id="mw-openai" parent="middleware-layer" style="rounded=1;fillColor=#ffffff;strokeColor=#d32f2f;fontSize=11;" value="&lt;b&gt;OpenAI API&lt;/b&gt;&lt;br&gt;GPT-4o-mini&lt;br&gt;LangChain4j" vertex="1">
+          <mxGeometry height="70" width="130" x="1165" y="45" as="geometry" />
         </mxCell>
-
-        <!-- ===== 数据流箭头 ===== -->
-        <mxCell id="arr-user-gw" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#666666;strokeWidth=2;" edge="1" parent="1" source="browser" target="nginx">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="arr-user-gw" edge="1" parent="1" source="browser" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#666666;strokeWidth=2;" target="nginx">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="arr-gw-biz" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#666666;strokeWidth=2;" edge="1" parent="1" source="nginx" target="mod-user">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="arr-gw-biz" edge="1" parent="1" source="nginx" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#666666;strokeWidth=2;" target="mod-user">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="arr-biz-mw" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#666666;strokeWidth=2;" edge="1" parent="1" source="mod-asset" target="mw-minio">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="arr-biz-mw" edge="1" parent="1" source="mod-asset" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#666666;strokeWidth=2;" target="mw-minio">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="arr-agent-mq" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#ff6f00;strokeWidth=2;dashed=1;" edge="1" parent="1" source="mod-agent" target="mw-rabbit">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="arr-agent-mq" edge="1" parent="1" source="mod-agent" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#ff6f00;strokeWidth=2;dashed=1;" target="mw-rabbit">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="arr-agent-ff" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#ff6f00;strokeWidth=2;dashed=1;" edge="1" parent="1" source="mod-agent" target="mw-ffmpeg">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="arr-agent-ff" edge="1" parent="1" source="mod-agent" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#ff6f00;strokeWidth=2;dashed=1;" target="mw-ffmpeg">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="arr-agent-llm" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#9c27b0;strokeWidth=2;dashed=1;" edge="1" parent="1" source="mod-agent" target="mw-openai">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="arr-agent-llm" edge="1" parent="1" source="mod-agent" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#9c27b0;strokeWidth=2;dashed=1;" target="mw-openai">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="arr-biz-redis" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#c62828;strokeWidth=2;" edge="1" parent="1" source="mod-common" target="mw-redis">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="arr-biz-redis" edge="1" parent="1" source="mod-common" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#c62828;strokeWidth=2;" target="mw-redis">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="arr-biz-db" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#666666;strokeWidth=2;" edge="1" parent="1" source="mod-common" target="mw-mysql">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="arr-biz-db" edge="1" parent="1" source="mod-common" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#666666;strokeWidth=2;" target="mw-mysql">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-
-        <!-- ===== 标注 ===== -->
-        <mxCell id="note-agent" value="★ Agent模块是核心亮点" style="text;html=1;fontSize=11;fontColor=#2e7d32;align=left;fontStyle=2;" vertex="1" parent="1">
-          <mxGeometry x="780" y="660" width="200" height="20" as="geometry"/>
+        <mxCell id="note-agent" parent="1" style="text;html=1;fontSize=11;fontColor=#2e7d32;align=left;fontStyle=2;" value="★ Agent模块是核心亮点" vertex="1">
+          <mxGeometry height="20" width="200" x="780" y="660" as="geometry" />
         </mxCell>
-        <mxCell id="note-redis" value="◆ Redis 5种应用场景" style="text;html=1;fontSize=11;fontColor=#c62828;align=left;fontStyle=2;" vertex="1" parent="1">
-          <mxGeometry x="220" y="660" width="175" height="20" as="geometry"/>
+        <mxCell id="note-redis" parent="1" style="text;html=1;fontSize=11;fontColor=#c62828;align=left;fontStyle=2;" value="◆ Redis 5种应用场景" vertex="1">
+          <mxGeometry height="20" width="175" x="220" y="660" as="geometry" />
         </mxCell>
-
-        <!-- ===== 标注：认证流程 ===== -->
-        <mxCell id="note-auth" value="JWT → ThreadLocal → MembershipValidator" style="rounded=1;fillColor=#fff8e1;strokeColor=#ff8f00;fontSize=10;align=center;" vertex="1" parent="1">
-          <mxGeometry x="700" y="275" width="250" height="22" as="geometry"/>
+        <mxCell id="note-auth" parent="1" style="rounded=1;fillColor=#fff8e1;strokeColor=#ff8f00;fontSize=10;align=center;" value="JWT → ThreadLocal → MembershipValidator" vertex="1">
+          <mxGeometry height="22" width="250" x="700" y="275" as="geometry" />
         </mxCell>
-
       </root>
     </mxGraphModel>
   </diagram>
